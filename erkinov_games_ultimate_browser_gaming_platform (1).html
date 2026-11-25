@@ -1,0 +1,3429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>ERKINOV GAMES — Ultimate Browser Gaming Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --bg-main: #101923;
+      --bg-secondary: #172635;
+      --bg-card: #1B2D40;
+      --bg-card-hover: #223850;
+      --accent: #1A9FFF;
+      --highlight: #66C0F4;
+      --text-main: #FFFFFF;
+      --text-sec: #A7B5C4;
+      --border-subtle: rgba(102, 192, 244, 0.14);
+    }
+
+    body.theme-midnight {
+      --bg-main: #090d14;
+      --bg-secondary: #101724;
+      --bg-card: #162033;
+      --bg-card-hover: #1d2b45;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #274059;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    .steam-surface {
+      background-color: var(--bg-secondary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .steam-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
+    }
+
+    .steam-card:hover {
+      transform: translateY(-4px);
+      background-color: var(--bg-card-hover);
+      border-color: rgba(102, 192, 244, 0.45);
+      box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(26, 159, 255, 0.2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #1A9FFF 0%, #0d74d1 100%);
+      color: #ffffff;
+      font-weight: 600;
+      border-radius: 0.65rem;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 14px rgba(26, 159, 255, 0.28);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #33adff 0%, #1A9FFF 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(26, 159, 255, 0.4);
+    }
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border-radius: 0.65rem;
+      transition: all 0.18s ease;
+    }
+    .btn-secondary:hover {
+      background-color: rgba(102, 192, 244, 0.15);
+      border-color: rgba(102, 192, 244, 0.4);
+    }
+
+    .horizontal-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding-bottom: 0.75rem;
+      scroll-snap-type: x mandatory;
+    }
+    .horizontal-scroll > * {
+      scroll-snap-align: start;
+      flex: 0 0 auto;
+    }
+
+    /* Game Stage Responsive Container */
+    #game-stage-wrapper {
+      position: relative;
+      width: 100%;
+      min-height: 460px;
+      height: 62vh;
+      max-height: 680px;
+      background: #0b121a;
+      border-radius: 0.85rem;
+      overflow: hidden;
+      border: 1px solid rgba(102, 192, 244, 0.2);
+      user-select: none;
+      touch-action: none;
+    }
+
+    #game-stage-wrapper:fullscreen {
+      max-height: none;
+      height: 100vh;
+      border-radius: 0;
+    }
+
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    #game-dom-layer {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .badge-chip {
+      background: rgba(26, 159, 255, 0.14);
+      color: #66C0F4;
+      border: 1px solid rgba(102, 192, 244, 0.25);
+    }
+
+    @keyframes fadeInScale {
+      from { opacity: 0; transform: scale(0.97); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-view {
+      animation: fadeInScale 0.22s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 steam-surface backdrop-blur-md bg-opacity-95 border-b border-sky-400/15">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer shrink-0" onclick="App.navigate('home')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1A9FFF] to-[#0b5ea8] flex items-center justify-center shadow-lg shadow-sky-500/20">
+          <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <rect x="2" y="6" width="20" height="12" rx="4" />
+            <path d="M6 12h4M8 10v4" stroke-linecap="round" />
+            <circle cx="15.5" cy="10.5" r="1" fill="currentColor" />
+            <circle cx="17.5" cy="13.5" r="1" fill="currentColor" />
+          </svg>
+        </div>
+        <div>
+          <span class="font-extrabold tracking-tight text-lg sm:text-xl text-white">ERKINOV <span class="text-[#1A9FFF]">GAMES</span></span>
+          <span class="hidden lg:inline-block ml-2 text-[10px] uppercase tracking-widest px-2 py-0.5 rounded bg-sky-500/15 text-[#66C0F4] font-semibold">50 HTML5</span>
+        </div>
+      </div>
+
+      <!-- Desktop Nav Links -->
+      <nav class="hidden xl:flex items-center gap-1 text-sm font-medium">
+        <button onclick="App.navigate('home')" data-nav="home" class="nav-link px-3 py-2 rounded-lg text-[#A7B5C4] hover:text-white hover:bg-white/5 transition" data-i18n="nav_home">Home</button>
+        <button onclick="App.navigate('discover')" data-nav="discover" class="nav-link px-3 py-2 rounded-lg text-[#A7B5C4] hover:text-white hover:bg-white/5 transition" data-i18n="nav_discover">Discover Games</button>
+        <button onclick="App.navigate('discover', {scrollCategories: true})" class="nav-link px-3 py-2 rounded-lg text-[#A7B5C4] hover:text-white hover:bg-white/5 transition" data-i18n="nav_categories">Categories</button>
+        <button onclick="App.navigate('discover', {sort: 'popular'})" class="nav-link px-3 py-2 rounded-lg text-[#A7B5C4] hover:text-white hover:bg-white/5 transition" data-i18n="nav_popular">Popular</button>
+        <button onclick="App.navigate('discover', {sort: 'newest'})" class="nav-link px-3 py-2 rounded-lg text-[#A7B5C4] hover:text-white hover:bg-white/5 transition" data-i18n="nav_new">New Releases</button>
+        <button onclick="App.navigate('favorites')" data-nav="favorites" class="nav-link px-3 py-2 rounded-lg text-[#A7B5C4] hover:text-white hover:bg-white/5 transition flex items-center gap-1.5">
+          <span data-i18n="nav_favorites">My Favorites</span>
+          <span id="nav-fav-count" class="text-xs px-1.5 py-0.2 rounded-full bg-[#1A9FFF]/25 text-[#66C0F4]">0</span>
+        </button>
+      </nav>
+
+      <!-- Search + Actions -->
+      <div class="flex items-center gap-2 sm:gap-3 flex-1 max-w-md xl:max-w-xs justify-end">
+        <!-- Quick Search Bar -->
+        <div class="relative flex-1 max-w-[240px]">
+          <input
+            id="global-search-input"
+            type="text"
+            autocomplete="off"
+            data-i18n-placeholder="search_placeholder"
+            placeholder="Search 50 games..."
+            class="w-full bg-[#101923] border border-sky-400/20 focus:border-[#1A9FFF] rounded-lg pl-9 pr-8 py-1.5 text-sm text-white placeholder-[#A7B5C4]/70 outline-none transition"
+          />
+          <svg class="w-4 h-4 text-[#A7B5C4] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+          <button id="global-search-clear" onclick="App.clearSearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A7B5C4] hover:text-white text-xs font-bold">✕</button>
+          <!-- Instant Search Dropdown -->
+          <div id="search-suggestions" class="hidden absolute left-0 right-0 mt-1.5 bg-[#172635] border border-sky-400/25 rounded-xl shadow-2xl overflow-hidden z-50 max-h-80 overflow-y-auto"></div>
+        </div>
+
+        <!-- Language Selector -->
+        <select id="language-selector" onchange="App.setLanguage(this.value)" aria-label="Language" class="bg-[#101923] border border-sky-400/20 text-xs sm:text-sm text-white rounded-lg px-2.5 py-1.5 outline-none focus:border-[#1A9FFF] cursor-pointer">
+          <option value="en">EN</option>
+          <option value="uz">UZ</option>
+          <option value="ru">RU</option>
+        </select>
+
+        <!-- Profile & Settings Button -->
+        <button onclick="App.navigate('profile')" class="p-2 rounded-lg btn-secondary flex items-center gap-1.5" title="Profile & Settings">
+          <svg class="w-4 h-4 text-[#66C0F4]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span class="hidden md:inline text-xs font-medium" id="header-nickname">Player</span>
+        </button>
+
+        <!-- Mobile Menu Toggle -->
+        <button onclick="App.toggleMobileMenu()" class="xl:hidden p-2 rounded-lg btn-secondary" aria-label="Menu">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobile-nav-drawer" class="hidden xl:hidden bg-[#172635] border-t border-sky-400/15 px-4 py-3 space-y-1">
+      <button onclick="App.navigate('home'); App.toggleMobileMenu(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm font-medium" data-i18n="nav_home">Home</button>
+      <button onclick="App.navigate('discover'); App.toggleMobileMenu(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm font-medium" data-i18n="nav_discover">Discover Games</button>
+      <button onclick="App.navigate('discover', {sort: 'popular'}); App.toggleMobileMenu(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm font-medium" data-i18n="nav_popular">Popular</button>
+      <button onclick="App.navigate('discover', {sort: 'newest'}); App.toggleMobileMenu(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm font-medium" data-i18n="nav_new">New Releases</button>
+      <button onclick="App.navigate('favorites'); App.toggleMobileMenu(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm font-medium flex justify-between items-center">
+        <span data-i18n="nav_favorites">My Favorites</span>
+        <span id="mobile-fav-count" class="text-xs px-2 py-0.5 rounded-full bg-[#1A9FFF]/25 text-[#66C0F4]">0</span>
+      </button>
+      <button onclick="App.navigate('profile'); App.toggleMobileMenu(false)" class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-white/5 text-sm font-medium" data-i18n="nav_profile">Profile & Settings</button>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION BANNER -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main id="app-root" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
+    <!-- Dynamic Views Rendered Here -->
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="steam-surface border-t border-sky-400/15 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="space-y-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-[#1A9FFF] flex items-center justify-center font-bold text-white">E</div>
+          <span class="font-bold text-lg">ERKINOV GAMES</span>
+        </div>
+        <p class="text-sm text-[#A7B5C4] leading-relaxed" data-i18n="footer_desc">
+          Next-generation browser gaming platform featuring 50 instant-play HTML5 titles across 8 genres with zero downloads.
+        </p>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-white mb-3 text-sm uppercase tracking-wider" data-i18n="nav_categories">Categories</h4>
+        <ul class="space-y-2 text-sm text-[#A7B5C4]">
+          <li><button onclick="App.navigate('discover', {category: 'racing'})" class="hover:text-[#66C0F4]" data-i18n="cat_racing">Racing</button></li>
+          <li><button onclick="App.navigate('discover', {category: 'arcade'})" class="hover:text-[#66C0F4]" data-i18n="cat_arcade">Arcade</button></li>
+          <li><button onclick="App.navigate('discover', {category: 'puzzle'})" class="hover:text-[#66C0F4]" data-i18n="cat_puzzle">Puzzle</button></li>
+          <li><button onclick="App.navigate('discover', {category: 'action'})" class="hover:text-[#66C0F4]" data-i18n="cat_action">Action</button></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-white mb-3 text-sm uppercase tracking-wider" data-i18n="more_genres">More Genres</h4>
+        <ul class="space-y-2 text-sm text-[#A7B5C4]">
+          <li><button onclick="App.navigate('discover', {category: 'sports'})" class="hover:text-[#66C0F4]" data-i18n="cat_sports">Sports</button></li>
+          <li><button onclick="App.navigate('discover', {category: 'simulation'})" class="hover:text-[#66C0F4]" data-i18n="cat_simulation">Simulation</button></li>
+          <li><button onclick="App.navigate('discover', {category: 'strategy'})" class="hover:text-[#66C0F4]" data-i18n="cat_strategy">Strategy</button></li>
+          <li><button onclick="App.navigate('discover', {category: 'casual'})" class="hover:text-[#66C0F4]" data-i18n="cat_casual">Casual</button></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-semibold text-white mb-3 text-sm uppercase tracking-wider" data-i18n="nav_profile">Platform</h4>
+        <ul class="space-y-2 text-sm text-[#A7B5C4]">
+          <li><button onclick="App.navigate('discover')" class="hover:text-[#66C0F4]" data-i18n="all_50_games">All 50 Games</button></li>
+          <li><button onclick="App.navigate('favorites')" class="hover:text-[#66C0F4]" data-i18n="nav_favorites">My Favorites</button></li>
+          <li><button onclick="App.navigate('profile')" class="hover:text-[#66C0F4]" data-i18n="nav_profile">Profile & Settings</button></li>
+          <li><button onclick="App.showDocsModal()" class="hover:text-[#66C0F4]" data-i18n="setup_guide">VS Code & Netlify Guide</button></li>
+        </ul>
+      </div>
+    </div>
+    <div class="border-t border-sky-400/10 py-4 text-center text-xs text-[#A7B5C4]">
+      © 2026 ERKINOV GAMES. <span data-i18n="footer_rights">All 50 original HTML5 games playable directly in your browser.</span>
+    </div>
+  </footer>
+
+  <!-- SETUP & DEPLOYMENT MODAL (In-App Documentation) -->
+  <div id="docs-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="steam-surface rounded-2xl max-w-2xl w-full max-h-[85vh] overflow-y-auto p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-sky-400/15 pb-3">
+        <h3 class="text-xl font-bold text-white">ERKINOV GAMES — Setup, VS Code & Netlify Guide</h3>
+        <button onclick="App.closeDocsModal()" class="text-[#A7B5C4] hover:text-white text-xl font-bold px-2">✕</button>
+      </div>
+      <div class="space-y-4 text-sm text-[#A7B5C4] leading-relaxed">
+        <div>
+          <h4 class="text-white font-semibold mb-1">1. Opening & Running in VS Code</h4>
+          <p>Save this file as <code class="text-[#66C0F4] bg-black/30 px-1.5 py-0.5 rounded">index.html</code> inside a folder named <code class="text-[#66C0F4] bg-black/30 px-1.5 py-0.5 rounded">ERKINOV-GAMES</code>. Open the folder in VS Code, install the <strong>Live Server</strong> extension, and click <strong>Go Live</strong> at the bottom right.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-1">2. Deploying to Netlify</h4>
+          <p>Go to <strong>app.netlify.com/drop</strong> and drag-and-drop your <code class="text-[#66C0F4] bg-black/30 px-1.5 py-0.5 rounded">ERKINOV-GAMES</code> folder directly into the browser window. Netlify will deploy the platform globally in seconds with HTTPS enabled.</p>
+        </div>
+        <div>
+          <h4 class="text-white font-semibold mb-1">3. Architecture & Storage</h4>
+          <p>Powered by a zero-dependency HTML5 Canvas & DOM Engine, Web Audio procedural sound synthesizer, procedural SVG cover art generator, and persistent LocalStorage profiles.</p>
+        </div>
+      </div>
+      <div class="flex justify-end pt-2">
+        <button onclick="App.closeDocsModal()" class="btn-primary px-5 py-2 text-sm">Close</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+/**
+ * ============================================================================
+ * 1. MULTILINGUAL TRANSLATION DICTIONARY (ENGLISH, UZBEK, RUSSIAN)
+ * ============================================================================
+ */
+const I18N = {
+  en: {
+    nav_home: "Home",
+    nav_discover: "Discover Games",
+    nav_categories: "Categories",
+    nav_popular: "Popular",
+    nav_new: "New Releases",
+    nav_favorites: "My Favorites",
+    nav_profile: "Profile & Settings",
+    search_placeholder: "Search 50 games...",
+    featured_badge: "FEATURED PREMIERE",
+    play_now: "Play Now",
+    add_favorite: "Favorite",
+    favorited: "Favorited",
+    trending_title: "Trending Now",
+    popular_title: "Popular Games",
+    new_releases_title: "New Releases",
+    recommended_title: "Recommended For You",
+    recently_played_title: "Recently Played",
+    favorites_title: "My Favorite Games",
+    view_all: "View All",
+    cat_all: "All Genres",
+    cat_racing: "Racing",
+    cat_arcade: "Arcade",
+    cat_puzzle: "Puzzle",
+    cat_action: "Action",
+    cat_sports: "Sports",
+    cat_simulation: "Simulation",
+    cat_strategy: "Strategy",
+    cat_casual: "Casual",
+    sort_popular: "Most Popular",
+    sort_rating: "Top Rated",
+    sort_alpha: "A – Z",
+    sort_newest: "Recently Added",
+    games_found: "games available",
+    empty_favorites: "No favorite games yet. Click the heart icon on any game to save it here!",
+    empty_search: "No games matched your filter criteria.",
+    reset_filters: "Reset Filters",
+    btn_start: "START GAME",
+    btn_restart: "Restart",
+    btn_pause: "Pause",
+    btn_resume: "Resume",
+    btn_fullscreen: "Fullscreen",
+    btn_sound_on: "Sound: ON",
+    btn_sound_off: "Sound: OFF",
+    how_to_play: "How to Play & Controls",
+    about_game: "About This Game",
+    related_games: "More in This Category",
+    score_label: "Score",
+    best_label: "Best",
+    game_over: "GAME OVER",
+    victory: "VICTORY!",
+    final_score: "Final Score",
+    play_again: "Play Again",
+    profile_title: "Player Profile & Platform Settings",
+    nickname_label: "Player Nickname",
+    save_profile: "Save Profile",
+    theme_label: "Interface Theme",
+    theme_steam: "Steam Deep Navy (Default)",
+    theme_midnight: "Midnight Slate",
+    stat_played: "Sessions Played",
+    stat_unique: "Unique Games Tried",
+    stat_favorites: "Favorites Saved",
+    stat_achievements: "Achievements Unlocked",
+    achievements_title: "Achievement Badges",
+    history_title: "Recent Game History",
+    footer_desc: "Next-generation browser gaming platform featuring 50 instant-play HTML5 titles across 8 genres with zero downloads.",
+    more_genres: "More Genres",
+    all_50_games: "All 50 Games",
+    setup_guide: "VS Code & Netlify Guide",
+    footer_rights: "All 50 original HTML5 games playable directly in your browser."
+  },
+  uz: {
+    nav_home: "Bosh sahifa",
+    nav_discover: "O'yinlarni kashf eting",
+    nav_categories: "Kategoriyalar",
+    nav_popular: "Mashhur",
+    nav_new: "Yangi o'yinlar",
+    nav_favorites: "Sevimlilar",
+    nav_profile: "Profil va Sozlamalar",
+    search_placeholder: "50 ta o'yindan qidirish...",
+    featured_badge: "TAVSIYA ETILGAN O'YIN",
+    play_now: "Hozir o'ynash",
+    add_favorite: "Sevimlilarga",
+    favorited: "Sevimlilarda",
+    trending_title: "Trenddagi o'yinlar",
+    popular_title: "Mashhur o'yinlar",
+    new_releases_title: "Yangi qo'shilganlar",
+    recommended_title: "Siz uchun tavsiyalar",
+    recently_played_title: "Yaqinda o'ynalganlar",
+    favorites_title: "Mening sevimli o'yinlarim",
+    view_all: "Barchasini ko'rish",
+    cat_all: "Barcha janrlar",
+    cat_racing: "Poyga",
+    cat_arcade: "Arkada",
+    cat_puzzle: "Boshqotirma",
+    cat_action: "Jangari",
+    cat_sports: "Sport",
+    cat_simulation: "Simulyatsiya",
+    cat_strategy: "Strategiya",
+    cat_casual: "Oddiy o'yinlar",
+    sort_popular: "Eng mashhur",
+    sort_rating: "Yuqori reyting",
+    sort_alpha: "A – Z",
+    sort_newest: "Eng yangilari",
+    games_found: "ta o'yin topildi",
+    empty_favorites: "Hozircha sevimli o'yinlar yo'q. Saqlash uchun yurakcha tugmasini bosing!",
+    empty_search: "Qidiruv bo'yicha o'yinlar topilmadi.",
+    reset_filters: "Filtrlarni tozalash",
+    btn_start: "O'YINNI BOSHLASH",
+    btn_restart: "Qayta boshlash",
+    btn_pause: "Pauza",
+    btn_resume: "Davom etish",
+    btn_fullscreen: "To'liq ekran",
+    btn_sound_on: "Ovoz: YOQILGAN",
+    btn_sound_off: "Ovoz: O'CHIRILGAN",
+    how_to_play: "O'ynash qoidalari va boshqaruv",
+    about_game: "O'yin haqida",
+    related_games: "Shu janrdagi boshqa o'yinlar",
+    score_label: "Hisob",
+    best_label: "Rekord",
+    game_over: "O'YIN TUGADI",
+    victory: "G'ALABA!",
+    final_score: "Yakuniy hisob",
+    play_again: "Yana o'ynash",
+    profile_title: "O'yinchi profili va sozlamalar",
+    nickname_label: "O'yinchi taxallusi",
+    save_profile: "Profilni saqlash",
+    theme_label: "Interfeys mavzusi",
+    theme_steam: "Steam To'q Ko'k (Standart)",
+    theme_midnight: "Tungi Qora-Ko'k",
+    stat_played: "O'ynalgan sessiyalar",
+    stat_unique: "Sinalgan o'yinlar",
+    stat_favorites: "Sevimli o'yinlar",
+    stat_achievements: "Ochilgan yutuqlar",
+    achievements_title: "Yutuq nishonlari",
+    history_title: "So'nggi o'yinlar tarixi",
+    footer_desc: "8 ta janrdagi 50 ta tezkor HTML5 o'yinlarni yuklab olmasdan o'ynash imkonini beruvchi zamonaviy platforma.",
+    more_genres: "Boshqa janrlar",
+    all_50_games: "Barcha 50 o'yin",
+    setup_guide: "VS Code va Netlify qo'llanmasi",
+    footer_rights: "Barcha 50 ta original HTML5 o'yinlar to'g'ridan-to'g'ri brauzerda ishlaydi."
+  },
+  ru: {
+    nav_home: "Главная",
+    nav_discover: "Каталог игр",
+    nav_categories: "Категории",
+    nav_popular: "Популярные",
+    nav_new: "Новинки",
+    nav_favorites: "Избранное",
+    nav_profile: "Профиль и настройки",
+    search_placeholder: "Поиск среди 50 игр...",
+    featured_badge: "ИГРА ДНЯ",
+    play_now: "Играть сейчас",
+    add_favorite: "В избранное",
+    favorited: "В избранном",
+    trending_title: "В тренде",
+    popular_title: "Популярные игры",
+    new_releases_title: "Новые релизы",
+    recommended_title: "Рекомендуем вам",
+    recently_played_title: "Недавно сыгранные",
+    favorites_title: "Мои избранные игры",
+    view_all: "Смотреть все",
+    cat_all: "Все жанры",
+    cat_racing: "Гонки",
+    cat_arcade: "Аркады",
+    cat_puzzle: "Головоломки",
+    cat_action: "Экшен",
+    cat_sports: "Спорт",
+    cat_simulation: "Симуляторы",
+    cat_strategy: "Стратегии",
+    cat_casual: "Казуальные",
+    sort_popular: "По популярности",
+    sort_rating: "По рейтингу",
+    sort_alpha: "По алфавиту",
+    sort_newest: "Сначала новые",
+    games_found: "игр доступно",
+    empty_favorites: "В избранном пока пусто. Нажмите на сердечко на карточке игры, чтобы сохранить её!",
+    empty_search: "По вашему запросу игр не найдено.",
+    reset_filters: "Сбросить фильтры",
+    btn_start: "НАЧАТЬ ИГРУ",
+    btn_restart: "Заново",
+    btn_pause: "Пауза",
+    btn_resume: "Продолжить",
+    btn_fullscreen: "На весь экран",
+    btn_sound_on: "Звук: ВКЛ",
+    btn_sound_off: "Звук: ВЫКЛ",
+    how_to_play: "Правила и управление",
+    about_game: "Об игре",
+    related_games: "Похожие игры",
+    score_label: "Счёт",
+    best_label: "Рекорд",
+    game_over: "ИГРА ОКОНЧЕНА",
+    victory: "ПОБЕДА!",
+    final_score: "Итоговый счёт",
+    play_again: "Играть снова",
+    profile_title: "Профиль игрока и настройки",
+    nickname_label: "Никнейм игрока",
+    save_profile: "Сохранить профиль",
+    theme_label: "Тема оформления",
+    theme_steam: "Глубокий синий Steam",
+    theme_midnight: "Полуночный сланец",
+    stat_played: "Сыграно сессий",
+    stat_unique: "Уникальных игр",
+    stat_favorites: "В избранном",
+    stat_achievements: "Достижения",
+    achievements_title: "Значки достижений",
+    history_title: "История игр",
+    footer_desc: "Браузерная игровая платформа нового поколения: 50 HTML5-игр в 8 жанрах без скачивания и установки.",
+    more_genres: "Другие жанры",
+    all_50_games: "Все 50 игр",
+    setup_guide: "Инструкция VS Code и Netlify",
+    footer_rights: "Все 50 оригинальных HTML5-игр запускаются прямо в браузере."
+  }
+};
+
+/**
+ * ============================================================================
+ * 2. PROCEDURAL WEB AUDIO SOUND SYNTHESIZER (NO EXTERNAL MP3s REQUIRED)
+ * ============================================================================
+ */
+const SoundFX = {
+  ctx: null,
+  enabled: true,
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  },
+  play(type = 'click') {
+    if (!this.enabled) return;
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      const now = this.ctx.currentTime;
+
+      if (type === 'score') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.11);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.start(now);
+        osc.stop(now + 0.12);
+      } else if (type === 'hit') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(190, now);
+        osc.frequency.exponentialRampToValueAtTime(55, now + 0.22);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.23);
+        osc.start(now);
+        osc.stop(now + 0.23);
+      } else if (type === 'jump') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(280, now);
+        osc.frequency.exponentialRampToValueAtTime(560, now + 0.14);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'win') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(554, now + 0.08);
+        osc.frequency.setValueAtTime(659, now + 0.16);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(420, now);
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+    } catch (e) {}
+  }
+};
+
+/**
+ * ============================================================================
+ * 3. COMPLETE 50-GAME JSON DATABASE WITH LOCALIZED DESCRIPTIONS & CONTROLS
+ * ============================================================================
+ */
+const GAMES_DB = [
+  // RACING (1-7)
+  { id: 1, slug: 'highway-racer', category: 'racing', rating: 4.9, popularity: 98, isNew: false, featured: true, engine: 'highway_racer',
+    title: 'Highway Racer',
+    desc: { en: 'Weave through high-speed multi-lane traffic at breakneck speeds and rack up near-miss combos.', uz: 'Ko‘p qatorli trassada yuqori tezlikda mashinalarni aylanib o‘ting va ochko to‘plang.', ru: 'Лавируйте в плотном потоке машин на высокой скорости и набирайте очки.' },
+    controls: { en: 'Left/Right Arrows or A/D (or Tap Left/Right side) to switch lanes.', uz: 'Chap/O‘ng tugmalar yoki A/D (yoki ekranga bosing).', ru: 'Стрелки Влево/Вправо или A/D (или касание краёв экрана).' } },
+  { id: 2, slug: 'drift-master', category: 'racing', rating: 4.8, popularity: 92, isNew: false, engine: 'drift_master',
+    title: 'Drift Master',
+    desc: { en: 'Hold tight corners on an asphalt circuit, maintain drift angles, and chain multiplier points.', uz: 'Asfalt trassada burilishlarda drift qiling va ko‘paytiruvchi ochkolarni yig‘ing.', ru: 'Удерживайте занос в поворотах гоночного трека и копите комбо-очки.' },
+    controls: { en: 'Left/Right Arrows or Hold Touch Left/Right to steer into drifts.', uz: 'Burilish uchun Chap/O‘ng tugmalarni bosing.', ru: 'Стрелки Влево/Вправо для управления заносом.' } },
+  { id: 3, slug: 'extreme-car-parking', category: 'racing', rating: 4.6, popularity: 84, isNew: false, engine: 'car_parking',
+    title: 'Extreme Car Parking',
+    desc: { en: 'Precision steering challenge: maneuver into tight parking bays without grazing barriers.', uz: 'To‘siqlarga tegmasdan mashinani belgilangan joyga aniq joylashtiring.', ru: 'Точная парковка: заведите авто в карман, не задев ограждения.' },
+    controls: { en: 'Arrow keys / WASD or On-screen arrows to drive and steer.', uz: 'Harakatlanish uchun strelka tugmalaridan foydalaning.', ru: 'Стрелки / WASD для движения и руления.' } },
+  { id: 4, slug: 'traffic-dodge', category: 'racing', rating: 4.7, popularity: 89, isNew: false, engine: 'traffic_dodge',
+    title: 'Traffic Dodge',
+    desc: { en: 'Sprint across busy multi-lane avenues and highways without getting clipped by oncoming vehicles.', uz: 'Tirband ko‘chalardan mashinalarga urilmasdan xavfsiz kesib o‘ting.', ru: 'Перебегайте оживлённые магистрали, уклоняясь от встречного транспорта.' },
+    controls: { en: 'Arrow keys / WASD or Swipe/Tap to dash forward, back, left, or right.', uz: 'Oldinga, orqaga va yon tomonlarga yurish uchun strelkalarni bosing.', ru: 'Стрелки / WASD или свайпы для рывка вперёд, назад и в стороны.' } },
+  { id: 5, slug: 'formula-speed', category: 'racing', rating: 4.9, popularity: 95, isNew: true, engine: 'formula_speed',
+    title: 'Formula Speed',
+    desc: { en: 'Open-wheel grand prix racing! Overtake rival formula cars and hit turbo boost pads.', uz: 'Formula poygasi! Raqiblarni quvib o‘ting va turbo tezlik zonalaridan foydalaning.', ru: 'Гонки Формулы! Обгоняйте соперников и собирайте зоны турбо-ускорения.' },
+    controls: { en: 'Left/Right Arrows or A/D to steer, Up/W for Turbo.', uz: 'Boshqarish uchun Chap/O‘ng, Turbo uchun Tepaga tugmasini bosing.', ru: 'Стрелки Влево/Вправо для руления, Вверх/W для турбо.' } },
+  { id: 6, slug: 'motorcycle-rush', category: 'racing', rating: 4.7, popularity: 87, isNew: false, engine: 'motorcycle_rush',
+    title: 'Motorcycle Rush',
+    desc: { en: 'Lean your superbike between roaring semi-trucks and collect nitro coins on the open highway.', uz: 'Superbaykni yuk mashinalari orasidan boshqaring va nitro tangalarni yig‘ing.', ru: 'Лавируйте на спортбайке между грузовиками и собирайте нитро-монеты.' },
+    controls: { en: 'Left/Right Arrows or Touch Left/Right to lean bike.', uz: 'Mototsiklni egish uchun Chap/O‘ng tugmalarini bosing.', ru: 'Стрелки Влево/Вправо или касание сторон экрана.' } },
+  { id: 7, slug: 'monster-truck-challenge', category: 'racing', rating: 4.8, popularity: 90, isNew: true, engine: 'monster_truck',
+    title: 'Monster Truck Challenge',
+    desc: { en: 'Crush junk cars, launch off steep dirt ramps, and balance your monster truck over rugged hills.', uz: 'Eski mashinalarni bosib o‘ting, tramplinlardan sakrang va muvozanatni saqlang.', ru: 'Давите старые авто, прыгайте с трамплинов и удерживайте баланс монстр-трака.' },
+    controls: { en: 'Right/D to accelerate, Left/A to brake/tilt, Space to jump.', uz: 'Gaz uchun O‘ng/D, tormoz uchun Chap/A, sakrash uchun Probel.', ru: 'Вправо/D — газ, Влево/A — тормоз/наклон, Пробел — прыжок.' } },
+
+  // ARCADE (8-15)
+  { id: 8, slug: 'neon-snake', category: 'arcade', rating: 4.9, popularity: 97, isNew: false, engine: 'neon_snake',
+    title: 'Neon Snake',
+    desc: { en: 'Classic grid-based cyber serpent. Devour energy orbs, grow longer, and avoid crashing into walls or yourself.', uz: 'Klassik ilon o‘yini. Energiya sharlarini yeb o‘sing va devorlarga urilmang.', ru: 'Классическая кибер-змейка. Собирайте сферы энергии, растите и не врезайтесь в стены.' },
+    controls: { en: 'Arrow keys / WASD or Swipe anywhere on the board.', uz: 'Strelka tugmalari / WASD yoki ekranda barmoq bilan suring.', ru: 'Стрелки / WASD или свайпы по игровому полю.' } },
+  { id: 9, slug: 'brick-breaker', category: 'arcade', rating: 4.8, popularity: 93, isNew: false, engine: 'brick_breaker',
+    title: 'Brick Breaker',
+    desc: { en: 'Deflect the plasma ball with your paddle to shatter multi-layered armored brick walls.', uz: 'Platforma yordamida to‘pni qaytarib barcha g‘ishtlarni sindiring.', ru: 'Отбивайте плазменный шар платформой, чтобы разрушить все ряды блоков.' },
+    controls: { en: 'Mouse move, Touch drag, or Left/Right Arrows.', uz: 'Sichqoncha, barmoq yoki Chap/O‘ng strelkalar.', ru: 'Мышь, касание экрана или стрелки Влево/Вправо.' } },
+  { id: 10, slug: 'space-invaders', category: 'arcade', rating: 4.8, popularity: 91, isNew: false, engine: 'space_invaders',
+    title: 'Space Invaders',
+    desc: { en: 'Defend Earth from descending alien fleets! Strafe behind shields and blast every wave.', uz: 'Yerni o‘zga sayyoraliklar hujumidan himoya qiling va barcha to‘lqinlarni yo‘q qiling.', ru: 'Защитите Землю от наступающего флота пришельцев!' },
+    controls: { en: 'Left/Right Arrows to move, Space/Tap to fire laser.', uz: 'Chap/O‘ng tugmalar — harakat, Probel/Bosish — otish.', ru: 'Стрелки Влево/Вправо — движение, Пробел/Тап — выстрел.' } },
+  { id: 11, slug: 'flappy-wings', category: 'arcade', rating: 4.6, popularity: 94, isNew: false, engine: 'flappy_wings',
+    title: 'Flappy Wings',
+    desc: { en: 'Tap with precision rhythm to guide your cyber-bird through narrow vertical pipe gaps.', uz: 'Quvur oraliqlaridan uchib o‘tish uchun aniq ritmda ekranga bosing.', ru: 'Нажимайте в ритм, чтобы провести птицу через узкие проёмы между трубами.' },
+    controls: { en: 'Click, Tap, Space, or Up Arrow to flap.', uz: 'Uchish uchun ekranga bosing yoki Probel tugmasini bosing.', ru: 'Клик, касание или Пробел для взмаха.' } },
+  { id: 12, slug: 'stack-tower', category: 'arcade', rating: 4.8, popularity: 90, isNew: true, engine: 'stack_tower',
+    title: 'Stack Tower',
+    desc: { en: 'Drop sliding architectural slabs onto the tower. Misaligned overhangs get sliced off!', uz: 'Harakatlanuvchi bloklarni ustma-ust aniq joylashtirib eng baland minorani quring.', ru: 'Складывайте движущиеся блоки точно друг на друга, чтобы построить башню.' },
+    controls: { en: 'Click, Tap, or press Space to drop the moving block.', uz: 'Blokni tushirish uchun ekranga bosing yoki Probelni bosing.', ru: 'Клик, касание или Пробел для сброса блока.' } },
+  { id: 13, slug: 'helix-drop', category: 'arcade', rating: 4.7, popularity: 88, isNew: true, engine: 'helix_drop',
+    title: 'Helix Drop',
+    desc: { en: 'Rotate the spiral tower so the bouncing ball falls through safe gaps and avoids hazard zones.', uz: 'Spiral minorani aylantirib to‘pni xavfli zonalardan o‘tkazib pastga tushiring.', ru: 'Вращайте спиральную башню, чтобы мяч проваливался в проёмы, минуя опасные зоны.' },
+    controls: { en: 'Left/Right Arrows or Drag horizontally to rotate tower.', uz: 'Minorani aylantirish uchun Chap/O‘ng tugmalar yoki surish.', ru: 'Стрелки Влево/Вправо или перетаскивание для вращения.' } },
+  { id: 14, slug: 'color-switch', category: 'arcade', rating: 4.7, popularity: 86, isNew: false, engine: 'color_switch',
+    title: 'Color Switch',
+    desc: { en: 'Bounce upward through rotating chromatic rings—only pass through segments matching your orb color!', uz: 'Aylanuvchi rangli halqalardan faqat o‘z rangingizga mos qismidan sakrab o‘ting!', ru: 'Прыгайте вверх сквозь вращающиеся кольца только через сегменты вашего цвета!' },
+    controls: { en: 'Click, Tap, or Space to bounce upward.', uz: 'Tepaga sakrash uchun ekranga bosing yoki Probel.', ru: 'Клик, касание или Пробел для прыжка вверх.' } },
+  { id: 15, slug: 'knife-hit', category: 'arcade', rating: 4.8, popularity: 92, isNew: false, engine: 'knife_hit',
+    title: 'Knife Hit',
+    desc: { en: 'Hurl steel blades into a spinning timber target without hitting previously embedded knives.', uz: 'Aylanayotgan yog‘och nishonga pichoqlarni bir-biriga tekkizmasdan sanching.', ru: 'Метайте ножи во вращающуюся мишень, не задевая уже воткнутые клинки.' },
+    controls: { en: 'Click, Tap, or Space to throw a knife.', uz: 'Pichoq otish uchun ekranga bosing yoki Probel.', ru: 'Клик, касание или Пробел для броска ножа.' } },
+
+  // PUZZLE (16-23)
+  { id: 16, slug: '2048', category: 'puzzle', rating: 4.9, popularity: 96, isNew: false, engine: 'game_2048',
+    title: '2048',
+    desc: { en: 'Slide numbered tiles on a 4x4 grid to merge matching powers of two and reach the 2048 tile.', uz: '4x4 katakda bir xil raqamlarni birlashtirib 2048 plitkasiga yeting.', ru: 'Сдвигайте плитки на поле 4x4, объединяя одинаковые числа до 2048.' },
+    controls: { en: 'Arrow keys / WASD or Swipe in any direction.', uz: 'Strelka tugmalari / WASD yoki barmoq bilan suring.', ru: 'Стрелки / WASD или свайпы в любую сторону.' } },
+  { id: 17, slug: 'sudoku', category: 'puzzle', rating: 4.8, popularity: 89, isNew: false, engine: 'sudoku',
+    title: 'Sudoku',
+    desc: { en: 'Classic 9x9 logic number grid. Fill every row, column, and 3x3 box with digits 1 through 9.', uz: 'Klassik 9x9 mantiqiy raqamlar o‘yini. Har bir qator va ustunni 1-9 raqamlar bilan to‘ldiring.', ru: 'Классическое судоку 9x9. Заполните строки, столбцы и блоки цифрами от 1 до 9.' },
+    controls: { en: 'Click/Tap a cell, then select a number (1–9) or press keys 1–9.', uz: 'Katakni tanlang va 1–9 raqamlardan birini bosing.', ru: 'Выберите клетку и нажмите цифру от 1 до 9.' } },
+  { id: 18, slug: 'minesweeper', category: 'puzzle', rating: 4.8, popularity: 88, isNew: false, engine: 'minesweeper',
+    title: 'Minesweeper',
+    desc: { en: 'Deduce hidden mine locations using numeric proximity clues and clear the entire sector safely.', uz: 'Raqamli ishoralar yordamida minalarni toping va maydonni xavfsiz tozalang.', ru: 'Вычислите расположение мин по числовым подсказкам и откройте всё поле.' },
+    controls: { en: 'Left Click/Tap to reveal cell; Right Click or Flag Mode toggle to mark mines.', uz: 'Ochish uchun bosing; bayroqcha qo‘yish uchun o‘ng tugma yoki Bayroq rejimini yoqing.', ru: 'ЛКМ/Тап — открыть клетку; ПКМ или режим флажка — пометить мину.' } },
+  { id: 19, slug: 'match-3', category: 'puzzle', rating: 4.8, popularity: 93, isNew: false, engine: 'match_3',
+    title: 'Match 3',
+    desc: { en: 'Swap gleaming gemstones to align three or more of a kind and trigger cascading combos.', uz: 'Bir xil rangdagi 3 yoki undan ortiq toshlarni bir qatorga tizib portlating.', ru: 'Меняйте местами кристаллы, собирая ряды из 3 и более одинаковых камней.' },
+    controls: { en: 'Click/Tap two adjacent gems to swap them.', uz: 'Almashtirish uchun ikkita qo‘shni toshni bosing.', ru: 'Нажмите на два соседних кристалла, чтобы поменять их местами.' } },
+  { id: 20, slug: 'block-puzzle', category: 'puzzle', rating: 4.7, popularity: 91, isNew: true, engine: 'block_puzzle',
+    title: 'Block Puzzle',
+    desc: { en: 'Place polyomino shapes onto an 8x8 board to complete full horizontal or vertical lines.', uz: '8x8 taxtaga shakllarni joylashtirib gorizontal yoki vertikal chiziqlarni to‘ldiring.', ru: 'Размещайте фигуры на поле 8x8, заполняя полные горизонтальные и вертикальные линии.' },
+    controls: { en: 'Select a piece below, then click/tap the board cell to place it.', uz: 'Pastdan shaklni tanlang va taxtadagi joyga bosing.', ru: 'Выберите фигуру снизу и нажмите на клетку поля для установки.' } },
+  { id: 21, slug: 'bubble-shooter', category: 'puzzle', rating: 4.7, popularity: 90, isNew: false, engine: 'bubble_shooter',
+    title: 'Bubble Shooter',
+    desc: { en: 'Aim your launcher and pop clusters of 3 or more matching colored orbs before they reach the bottom.', uz: 'Bir xil rangdagi 3 va undan ko‘p sharlarni nishonga olib yoring.', ru: 'Прицеливайтесь и лопайте группы из 3 и более шаров одного цвета.' },
+    controls: { en: 'Aim with Mouse/Touch and Click/Release to shoot.', uz: 'Sichqoncha/barmoq bilan nishonga oling va otish uchun bosing.', ru: 'Наведите прицел мышью/пальцем и нажмите для выстрела.' } },
+  { id: 22, slug: 'memory-cards', category: 'puzzle', rating: 4.6, popularity: 85, isNew: false, engine: 'memory_cards',
+    title: 'Memory Cards',
+    desc: { en: 'Flip cards to uncover matching cyber symbols in as few moves as possible.', uz: 'Kartalarni ochib bir xil belgilarni eng kam yurishda juftlang.', ru: 'Переворачивайте карточки и находите одинаковые пары за минимум ходов.' },
+    controls: { en: 'Click or Tap any card to flip it over.', uz: 'Kartani ochish uchun ustiga bosing.', ru: 'Нажмите на карточку, чтобы перевернуть её.' } },
+  { id: 23, slug: 'word-puzzle', category: 'puzzle', rating: 4.7, popularity: 84, isNew: true, engine: 'word_puzzle',
+    title: 'Word Puzzle',
+    desc: { en: 'Unscramble 5-letter gaming & tech words within 6 guesses using color-coded letter feedback.', uz: 'Rangli ishoralar yordamida 6 ta urinishda 5 harfli yashirin so‘zni toping.', ru: 'Угадайте скрытое слово из 5 букв за 6 попыток по цветовым подсказкам.' },
+    controls: { en: 'Type on your keyboard or tap the on-screen letter keys.', uz: 'Klaviaturada yozing yoki ekrandagi harflarni bosing.', ru: 'Вводите буквы с клавиатуры или экранной панели.' } },
+
+  // ACTION (24-29)
+  { id: 24, slug: 'zombie-survival', category: 'action', rating: 4.9, popularity: 95, isNew: false, engine: 'zombie_survival',
+    title: 'Zombie Survival',
+    desc: { en: 'Hold the perimeter against relentless waves of undead zombies in a top-down arena shooter.', uz: 'Zombilar to‘lqiniga qarshi turing va arenada omon qoling.', ru: 'Сдерживайте волны зомби в динамичном шутере с видом сверху.' },
+    controls: { en: 'WASD/Arrows to move, Mouse/Tap to aim & shoot.', uz: 'WASD/Strelkalar — yurish, Sichqoncha/Bosish — otish.', ru: 'WASD/Стрелки — движение, Мышь/Тап — прицел и стрельба.' } },
+  { id: 25, slug: 'space-shooter', category: 'action', rating: 4.8, popularity: 92, isNew: false, engine: 'space_shooter',
+    title: 'Space Shooter',
+    desc: { en: 'Pilot an interceptor starfighter through asteroid belts and enemy dreadnought squadrons.', uz: 'Koinot qiruvchisini boshqarib asteroidlar va dushman kemalarini yo‘q qiling.', ru: 'Управляйте звёздным истребителем сквозь астероиды и вражеские эскадрильи.' },
+    controls: { en: 'Arrows/WASD or Touch drag to fly; auto-fires twin plasma cannons.', uz: 'Uchish uchun Strelkalar/WASD yoki barmoq bilan suring.', ru: 'Стрелки/WASD или касание для полёта; пушки стреляют автоматически.' } },
+  { id: 26, slug: 'ninja-jump', category: 'action', rating: 4.7, popularity: 88, isNew: false, engine: 'ninja_jump',
+    title: 'Ninja Jump',
+    desc: { en: 'Leap swiftly between dojo walls, dodge shuriken traps, and ascend the shadow tower.', uz: 'Devorlar orasida chaqqon sakrab tuzoqlardan qoching va yuqoriga ko‘tariling.', ru: 'Прыгайте между стенами додзё, уклоняйтесь от сюрикэнов и взбирайтесь выше.' },
+    controls: { en: 'Click, Tap, or Space to leap to the opposite wall.', uz: 'Qarama-qarshi devorga sakrash uchun bosing yoki Probel.', ru: 'Клик, касание или Пробел для прыжка на другую стену.' } },
+  { id: 27, slug: 'platform-adventure', category: 'action', rating: 4.8, popularity: 90, isNew: true, engine: 'platform_adventure',
+    title: 'Platform Adventure',
+    desc: { en: 'Run, double-jump across floating islands, collect golden crystals, and reach the portal.', uz: 'Suzuvchi orollar bo‘ylab yuguring, olmoslarni yig‘ing va portalga yeting.', ru: 'Бегайте и прыгайте по парящим островам, собирайте кристаллы и доберитесь до портала.' },
+    controls: { en: 'Left/Right Arrows (A/D) to run, Up/W/Space to jump.', uz: 'Chap/O‘ng (A/D) — yugurish, Tepaga/W/Probel — sakrash.', ru: 'Влево/Вправо (A/D) — бег, Вверх/W/Пробел — прыжок.' } },
+  { id: 28, slug: 'robot-battle', category: 'action', rating: 4.7, popularity: 87, isNew: true, engine: 'robot_battle',
+    title: 'Robot Battle',
+    desc: { en: 'Duel heavy combat mechs in a cyber-arena! Time your energy blasts and shield blocks.', uz: 'Kiber-arenada jangovar robotlar bilan duel o‘tkazing!', ru: 'Сражайтесь с боевыми мехами на кибер-арене!' },
+    controls: { en: 'A/D or Left/Right to move, Space/Click to fire Railgun, S/Down to Shield.', uz: 'A/D — harakat, Probel/Bosish — otish, S — qalqon.', ru: 'A/D — движение, Пробел/Клик — выстрел, S — щит.' } },
+  { id: 29, slug: 'alien-attack', category: 'action', rating: 4.7, popularity: 86, isNew: false, engine: 'alien_attack',
+    title: 'Alien Attack',
+    desc: { en: 'Turret defense action! Rotate your planetary defense cannon 360° to vaporize incoming UFOs.', uz: 'Sayyora mudofaa to‘pini 360° aylantirib yaqinlashayotgan NUJlarni yo‘q qiling.', ru: 'Вращайте планетарную турель на 360° и сбивайте подлетающие НЛО.' },
+    controls: { en: 'Move Mouse/Touch around center to aim and fire automatically.', uz: 'Nishonga olish uchun sichqoncha/barmoqni markaz atrofida harakatlantiring.', ru: 'Наводите прицел мышью или касанием вокруг центра турели.' } },
+
+  // SPORTS (30-34)
+  { id: 30, slug: 'penalty-kick', category: 'sports', rating: 4.9, popularity: 94, isNew: false, engine: 'penalty_kick',
+    title: 'Penalty Kick',
+    desc: { en: 'Step up to the penalty spot! Curve your shot past the diving goalkeeper into the top corner.', uz: 'Penalti nuqtasidan zarba bering va darvozabonni dog‘da qoldiring!', ru: 'Пробейте пенальти! Закрутите мяч мимо вратаря прямо в девятку.' },
+    controls: { en: 'Click/Tap anywhere inside the goal frame to shoot.', uz: 'Zarba berish uchun darvoza ichidagi istalgan nuqtaga bosing.', ru: 'Нажмите в любую точку ворот, чтобы нанести удар.' } },
+  { id: 31, slug: 'basketball-challenge', category: 'sports', rating: 4.8, popularity: 91, isNew: false, engine: 'basketball',
+    title: 'Basketball Challenge',
+    desc: { en: 'Arc clean swishes through the hoop before the shot clock expires for bonus streak points.', uz: 'Vaqt tugashidan oldin to‘pni savatga aniq tushirib ochko to‘plang.', ru: 'Забрасывайте мячи в кольцо на время и набирайте бонусы за серию попаданий.' },
+    controls: { en: 'Click/Tap and drag upward (or click power angle) to shoot.', uz: 'To‘pni otish uchun bosing va savat tomon tortib qo‘yib yuboring.', ru: 'Нажмите, потяните в сторону кольца и отпустите для броска.' } },
+  { id: 32, slug: 'table-tennis', category: 'sports', rating: 4.8, popularity: 89, isNew: false, engine: 'table_tennis',
+    title: 'Table Tennis',
+    desc: { en: 'Fast-paced ping-pong rallies against an adaptive AI opponent. First to 11 points wins!', uz: 'Aqlli raqibga qarshi tezkor stol tennisi! 11 ochkoni birinchi to‘plagan g‘olib bo‘ladi.', ru: 'Динамичный настольный теннис против ИИ. Побеждает первый, набравший 11 очков!' },
+    controls: { en: 'Move Mouse/Touch vertically or use Up/Down Arrows.', uz: 'Raketkani boshqarish uchun sichqoncha, barmoq yoki Tepaga/Pastga tugmalari.', ru: 'Двигайте мышь/палец вверх-вниз или используйте стрелки.' } },
+  { id: 33, slug: 'football-stars', category: 'sports', rating: 4.8, popularity: 92, isNew: true, engine: 'football_stars',
+    title: 'Football Stars',
+    desc: { en: '1v1 physics arcade soccer! Jump, header, and volley the ball into your rival’s net.', uz: '1ga-1 arkada futbol! Sakrab bosh bilan zarba bering va raqib darvozasiga gol uring.', ru: 'Аркадный футбол 1 на 1! Прыгайте, бейте головой и забивайте голы сопернику.' },
+    controls: { en: 'Left/Right Arrows to move, Up/W to jump, Space to kick.', uz: 'Chap/O‘ng — yurish, Tepaga/W — sakrash, Probel — tepish.', ru: 'Влево/Вправо — движение, Вверх/W — прыжок, Пробел — удар.' } },
+  { id: 34, slug: 'bowling-master', category: 'sports', rating: 4.7, popularity: 86, isNew: false, engine: 'bowling',
+    title: 'Bowling Master',
+    desc: { en: 'Line up your spin, bowl down the polished lane, and knock down all 10 pins for a Strike!', uz: 'Sharni yo‘lak bo‘ylab aniq otib barcha 10 ta keglini yiqiting va Strayk qiling!', ru: 'Запустите шар по дорожке и сбейте все 10 кеглей, чтобы выбить страйк!' },
+    controls: { en: 'Click/Tap once to lock position, click again to lock spin & bowl.', uz: 'Pozitsiyani tanlash uchun bir marta, otish uchun ikkinchi marta bosing.', ru: 'Нажмите один раз для выбора позиции, второй раз — для броска.' } },
+
+  // SIMULATION (35-39)
+  { id: 35, slug: 'city-traffic-simulator', category: 'simulation', rating: 4.7, popularity: 85, isNew: true, engine: 'city_traffic',
+    title: 'City Traffic Simulator',
+    desc: { en: 'Control smart intersection traffic lights to keep cars flowing smoothly without gridlock or crashes.', uz: 'Svetoforlarni boshqarib chorrahada tirbandlik va avariyalarning oldini oling.', ru: 'Управляйте светофорами на перекрёстке, чтобы избежать пробок и аварий.' },
+    controls: { en: 'Click/Tap traffic signals or press Space to switch Green/Red lights.', uz: 'Svetofor chiroqlarini almashtirish uchun ustiga bosing yoki Probel.', ru: 'Нажимайте на светофоры или Пробел для переключения сигналов.' } },
+  { id: 36, slug: 'airport-manager', category: 'simulation', rating: 4.8, popularity: 87, isNew: true, engine: 'airport_manager',
+    title: 'Airport Manager',
+    desc: { en: 'Air traffic control sim! Guide incoming jets onto open runways safely without mid-air collisions.', uz: 'Dispecher simulyatori! Samolyotlarni bo‘sh uchish-qo‘nish yo‘laklariga xavfsiz qo‘ndiring.', ru: 'Авиадиспетчер! Направляйте заходящие на посадку лайнеры на свободные полосы.' },
+    controls: { en: 'Click/Tap an aircraft, then click/tap the matching Runway button.', uz: 'Samolyotni tanlang va mos qo‘nish yo‘lagi tugmasini bosing.', ru: 'Выберите самолёт, затем нажмите кнопку свободной полосы.' } },
+  { id: 37, slug: 'farm-simulator', category: 'simulation', rating: 4.7, popularity: 88, isNew: false, engine: 'farm_sim',
+    title: 'Farm Simulator',
+    desc: { en: 'Plant seeds, water crops, harvest golden wheat, and upgrade your agricultural empire.', uz: 'Urug‘ eking, sug‘oring, hosilni yig‘ib oling va fermangizni rivojlantiring.', ru: 'Сажайте семена, поливайте урожай, собирайте пшеницу и развивайте ферму.' },
+    controls: { en: 'Click/Tap soil plots to Plant, Water, and Harvest crops.', uz: 'Ekish, sug‘orish va hosil yig‘ish uchun yer kataklariga bosing.', ru: 'Нажимайте на грядки для посадки, полива и сбора урожая.' } },
+  { id: 38, slug: 'restaurant-manager', category: 'simulation', rating: 4.8, popularity: 90, isNew: false, engine: 'restaurant_sim',
+    title: 'Restaurant Manager',
+    desc: { en: 'Prepare gourmet burgers, fries, and drinks to serve hungry guests before their patience runs out.', uz: 'Xaridorlar kutib qolmasidan buyurtmalarni tez tayyorlab xizmat ko‘rsating.', ru: 'Готовьте бургеры, картофель фри и напитки, чтобы быстро обслужить гостей.' },
+    controls: { en: 'Click/Tap ingredient stations matching the customer order, then Serve.', uz: 'Buyurtmaga mos mahsulotlarni bosing va Topshirish tugmasini bosing.', ru: 'Нажимайте на ингредиенты из заказа, затем кнопку «Подать».' } },
+  { id: 39, slug: 'car-mechanic-simulator', category: 'simulation', rating: 4.7, popularity: 86, isNew: true, engine: 'car_mechanic',
+    title: 'Car Mechanic Simulator',
+    desc: { en: 'Diagnose faulty engines, swap worn tires, top up oil, and tune sports cars in your garage.', uz: 'Garajda sport avtomobillarini diagnostika qiling, shinalar va moyni almashtiring.', ru: 'Диагностируйте двигатели, меняйте шины и масло в своём автосервисе.' },
+    controls: { en: 'Click/Tap the highlighted repair tools matching each vehicle issue.', uz: 'Har bir nosozlikka mos ta’mirlash asbobini bosing.', ru: 'Выбирайте нужные инструменты для устранения неисправностей авто.' } },
+
+  // STRATEGY (40-44)
+  { id: 40, slug: 'chess', category: 'strategy', rating: 4.9, popularity: 95, isNew: false, engine: 'chess',
+    title: 'Chess',
+    desc: { en: 'Play royal strategy chess against an intelligent tactical AI with full legal move validation.', uz: 'Aqlli sun’iy intellektga qarshi to‘liq qoidalar asosida shaxmat o‘ynang.', ru: 'Классические шахматы против тактического ИИ с проверкой всех правил.' },
+    controls: { en: 'Click/Tap a white piece to highlight legal moves, then tap target square.', uz: 'Oq donani tanlang va yashil kataklardan biriga yuring.', ru: 'Нажмите на белую фигуру, затем выберите подсвеченную клетку хода.' } },
+  { id: 41, slug: 'checkers', category: 'strategy', rating: 4.7, popularity: 86, isNew: false, engine: 'checkers',
+    title: 'Checkers',
+    desc: { en: 'Diagonal board tactics! Capture opponent pieces, crown Kings, and clear the board.', uz: 'Diagonal taktika! Raqib donalarini urib oling, damkaga chiqing va g‘alaba qozoning.', ru: 'Классические шашки! Бейте шашки соперника, проводите дамки и побеждайте.' },
+    controls: { en: 'Click/Tap your piece, then tap a highlighted diagonal square.', uz: 'O‘z donangizni tanlang va diagonal katakni bosing.', ru: 'Выберите свою шашку и нажмите на доступную диагональную клетку.' } },
+  { id: 42, slug: 'tower-defense', category: 'strategy', rating: 4.9, popularity: 93, isNew: true, engine: 'tower_defense',
+    title: 'Tower Defense',
+    desc: { en: 'Deploy laser and frost turrets along the canyon path to stop armored waves from reaching your core.', uz: 'Dushman to‘lqinlarini to‘xtatish uchun yo‘l bo‘ylab lazer va muzlatuvchi minoralar quring.', ru: 'Стройте лазерные и ледяные башни вдоль маршрута, защищая свою базу.' },
+    controls: { en: 'Select tower type, then click/tap build pads alongside the track.', uz: 'Minora turini tanlang va yo‘l chetidagi maydonchalarga bosing.', ru: 'Выберите тип башни и нажмите на площадку вдоль дороги.' } },
+  { id: 43, slug: 'tic-tac-toe', category: 'strategy', rating: 4.6, popularity: 85, isNew: false, engine: 'tic_tac_toe',
+    title: 'Tic Tac Toe',
+    desc: { en: 'Quick tactical 3x3 duel against a smart AI. Align three X marks horizontally, vertically, or diagonally.', uz: '3x3 maydonda uchta X belgisini bir qatorga tizib g‘alaba qozoning.', ru: 'Быстрая дуэль 3x3 против ИИ. Соберите три крестика в ряд.' },
+    controls: { en: 'Click or Tap any empty grid square to place X.', uz: 'X belgisini qo‘yish uchun bo‘sh katakni bosing.', ru: 'Нажмите на любую свободную клетку, чтобы поставить X.' } },
+  { id: 44, slug: 'connect-four', category: 'strategy', rating: 4.8, popularity: 89, isNew: false, engine: 'connect_four',
+    title: 'Connect Four',
+    desc: { en: 'Drop colored discs into the 7x6 vertical grid and connect four in a row before the AI does.', uz: '7x6 panjaraga disk tashlab AI dan oldin 4 tasini bir qatorga tizing.', ru: 'Бросайте фишки в сетку 7x6 и соберите четыре в ряд раньше соперника.' },
+    controls: { en: 'Click or Tap any column to drop your disc.', uz: 'Disk tashlash uchun istalgan ustunni bosing.', ru: 'Нажмите на любой столбец, чтобы бросить фишку.' } },
+
+  // CASUAL (45-50)
+  { id: 45, slug: 'fruit-slice', category: 'casual', rating: 4.9, popularity: 94, isNew: false, engine: 'fruit_slice',
+    title: 'Fruit Slice',
+    desc: { en: 'Swipe your blade across flying watermelons, oranges, and apples while avoiding explosive bombs!', uz: 'Uchayotgan mevalarni qilich bilan kesing, lekin bombalarga tegmang!', ru: 'Разрезайте летящие фрукты взмахами клинка, но остерегайтесь бомб!' },
+    controls: { en: 'Click & drag or Swipe across fruits on the screen.', uz: 'Mevalar ustidan sichqoncha yoki barmoq bilan kesib o‘ting.', ru: 'Проводите мышью или пальцем по фруктам на экране.' } },
+  { id: 46, slug: 'endless-runner', category: 'casual', rating: 4.8, popularity: 92, isNew: false, engine: 'endless_runner',
+    title: 'Endless Runner',
+    desc: { en: 'Sprint across neon rooftops, leap over energy barriers, and collect power crystals.', uz: 'Neon tomlar bo‘ylab yuguring, to‘siqlardan sakrang va kristallarni yig‘ing.', ru: 'Бегите по неоновым крышам, перепрыгивайте барьеры и собирайте кристаллы.' },
+    controls: { en: 'Click, Tap, Space, or Up Arrow to Jump (Double jump supported!).', uz: 'Sakrash uchun bosing yoki Probel (Ikki marta sakrash mumkin!).', ru: 'Клик, касание или Пробел для прыжка (доступен двойной прыжок!).' } },
+  { id: 47, slug: 'fishing-master', category: 'casual', rating: 4.7, popularity: 87, isNew: true, engine: 'fishing_master',
+    title: 'Fishing Master',
+    desc: { en: 'Cast your line into deep crystal waters and reel in rare golden fish for big rewards.', uz: 'Chuqur suvga qarmoq tashlab noyob oltin baliqlarni tuting.', ru: 'Забрасывайте удочку в глубокие воды и вытягивайте редкую золотую рыбу.' },
+    controls: { en: 'Click/Tap to cast hook, then steer hook Left/Right while reeling up.', uz: 'Qarmoq tashlash uchun bosing, tortishda Chap/O‘ngga boshqaring.', ru: 'Нажмите для заброса, затем направляйте крючок Влево/Вправо при подъёме.' } },
+  { id: 48, slug: 'bubble-pop', category: 'casual', rating: 4.6, popularity: 84, isNew: false, engine: 'bubble_pop',
+    title: 'Bubble Pop',
+    desc: { en: 'Relaxing chain-reaction bubble popping! Tap groups of matching bubbles to clear the board.', uz: 'Bir xil rangdagi pufakchalar guruhini bosib zanjirli portlash hosil qiling.', ru: 'Расслабляющая игра: лопайте группы одинаковых пузырьков одним нажатием.' },
+    controls: { en: 'Click or Tap any connected group of 2+ matching bubbles.', uz: '2 va undan ortiq bir xil pufakchalar guruhini bosing.', ru: 'Нажмите на группу из 2 и более одинаковых пузырьков.' } },
+  { id: 49, slug: 'idle-clicker', category: 'casual', rating: 4.7, popularity: 89, isNew: false, engine: 'idle_clicker',
+    title: 'Idle Clicker',
+    desc: { en: 'Mine cyber-crystals, automate drone harvesters, and scale your energy reactor exponentially.', uz: 'Kiber-kristallar qazib oling, dronlarni avtomatlashtiring va reaktorni kuchaytiring.', ru: 'Добывайте кибер-кристаллы, покупайте дронов и развивайте энергореактор.' },
+    controls: { en: 'Click/Tap the Energy Core to mine, then buy automated upgrades.', uz: 'Qazib olish uchun Energiya yadrosini bosing va kuchaytirgichlar sotib oling.', ru: 'Нажимайте на Энергоядро для добычи и покупайте улучшения.' } },
+  { id: 50, slug: 'color-match', category: 'casual', rating: 4.8, popularity: 91, isNew: true, engine: 'color_match',
+    title: 'Color Match',
+    desc: { en: 'Fast brain-reflex test! Decide whether the word meaning matches the ink color before time runs out.', uz: 'Tezkor reaksiya testi! So‘z ma’nosi siyoh rangiga mos kelishini vaqt tugamasdan toping.', ru: 'Тест на реакцию! Определите, совпадает ли значение слова с цветом текста.' },
+    controls: { en: 'Click/Tap MATCH or NO MATCH (or Left/Right Arrow keys).', uz: 'MOS yoki MOS EMAS tugmasini (yoki Chap/O‘ng strelkalarni) bosing.', ru: 'Нажмите СОВПАДАЕТ или НЕТ (или стрелки Влево/Вправо).' } }
+];
+
+/**
+ * ============================================================================
+ * 4. PROCEDURAL UNIQUE SVG THUMBNAIL ARTWORK GENERATOR FOR ALL 50 GAMES
+ * ============================================================================
+ */
+const CategoryThemes = {
+  racing:     { c1: '#0f2942', c2: '#1A9FFF', accent: '#38bdf8', icon: '🏎️' },
+  arcade:     { c1: '#19223c', c2: '#3b82f6', accent: '#60a5fa', icon: '🕹️' },
+  puzzle:     { c1: '#12343b', c2: '#0ea5e9', accent: '#22d3ee', icon: '🧩' },
+  action:     { c1: '#1e293b', c2: '#2563eb', accent: '#93c5fd', icon: '⚔️' },
+  sports:     { c1: '#0f3443', c2: '#0284c7', accent: '#7dd3fc', icon: '⚽' },
+  simulation: { c1: '#172a45', c2: '#1d4ed8', accent: '#66C0F4', icon: '🏙️' },
+  strategy:   { c1: '#1b263b', c2: '#0369a1', accent: '#bae6fd', icon: '♟️' },
+  casual:     { c1: '#132f4c', c2: '#0077b6', accent: '#90e0ef', icon: '✨' }
+};
+
+function getGameThumbnailURI(game) {
+  const t = CategoryThemes[game.category] || CategoryThemes.arcade;
+  const seed = game.id * 37;
+  const x1 = (seed % 180) + 40;
+  const y1 = ((seed * 3) % 90) + 25;
+  const x2 = ((seed * 7) % 240) + 80;
+  const r1 = 38 + (game.id % 28);
+  const titleSafe = game.title.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  const catLabel = game.category.toUpperCase();
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="225" viewBox="0 0 400 225">
+    <defs>
+      <linearGradient id="g${game.id}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${t.c1}"/>
+        <stop offset="100%" stop-color="${t.c2}"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="225" fill="url(#g${game.id})"/>
+    <circle cx="${x1}" cy="${y1}" r="${r1}" fill="${t.accent}" fill-opacity="0.14"/>
+    <circle cx="${x2}" cy="175" r="${r1 + 18}" fill="#ffffff" fill-opacity="0.06"/>
+    <path d="M0 185 Q 140 ${130 + (game.id % 40)}, 400 165 L 400 225 L 0 225 Z" fill="#101923" fill-opacity="0.55"/>
+    <rect x="20" y="18" width="94" height="22" rx="6" fill="#101923" fill-opacity="0.65"/>
+    <text x="67" y="33" font-family="Inter,Arial,sans-serif" font-size="10" font-weight="700" fill="#66C0F4" text-anchor="middle" letter-spacing="1">${catLabel}</text>
+    <text x="355" y="42" font-family="Inter,Arial,sans-serif" font-size="13" font-weight="800" fill="#ffffff" fill-opacity="0.35" text-anchor="end">#${String(game.id).padStart(2, '0')}</text>
+    <circle cx="200" cy="96" r="34" fill="#101923" fill-opacity="0.45" stroke="${t.accent}" stroke-opacity="0.45" stroke-width="2"/>
+    <text x="200" y="108" font-size="32" text-anchor="middle">${t.icon}</text>
+    <text x="200" y="164" font-family="Inter,Arial,sans-serif" font-size="21" font-weight="800" fill="#ffffff" text-anchor="middle">${titleSafe}</text>
+    <rect x="155" y="178" width="90" height="4" rx="2" fill="${t.accent}"/>
+  </svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+}
+
+/**
+ * ============================================================================
+ * 5. LOCALSTORAGE STATE & PROFILE MANAGER
+ * ============================================================================
+ */
+const Store = {
+  KEY: 'erkinov_games_v1',
+  state: {
+    lang: 'en',
+    theme: 'steam',
+    nickname: 'PlayerOne',
+    favorites: [1, 8, 16, 40],
+    recentlyPlayed: [1, 8, 24],
+    history: [],
+    bestScores: {},
+    sessionsPlayed: 0
+  },
+  load() {
+    try {
+      const raw = localStorage.getItem(this.KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        this.state = { ...this.state, ...parsed };
+      }
+    } catch (e) {}
+  },
+  save() {
+    try {
+      localStorage.setItem(this.KEY, JSON.stringify(this.state));
+    } catch (e) {}
+  },
+  toggleFavorite(gameId) {
+    const idx = this.state.favorites.indexOf(gameId);
+    if (idx === -1) {
+      this.state.favorites.unshift(gameId);
+      this.save();
+      return true;
+    } else {
+      this.state.favorites.splice(idx, 1);
+      this.save();
+      return false;
+    }
+  },
+  isFavorite(gameId) {
+    return this.state.favorites.includes(gameId);
+  },
+  recordSession(gameId, score = 0) {
+    this.state.sessionsPlayed += 1;
+    this.state.recentlyPlayed = [gameId, ...this.state.recentlyPlayed.filter(id => id !== gameId)].slice(0, 12);
+    const prevBest = this.state.bestScores[gameId] || 0;
+    if (score > prevBest) {
+      this.state.bestScores[gameId] = score;
+    }
+    this.state.history.unshift({
+      gameId,
+      score,
+      date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    });
+    this.state.history = this.state.history.slice(0, 20);
+    this.save();
+  },
+  getAchievements() {
+    const uniqueCount = new Set(this.state.recentlyPlayed).size;
+    return [
+      { id: 'first_play', icon: '🎮', title: 'First Launch', desc: 'Play your first game on ERKINOV GAMES', unlocked: this.state.sessionsPlayed >= 1 },
+      { id: 'collector', icon: '❤️', title: 'Game Collector', desc: 'Save 5 or more games to Favorites', unlocked: this.state.favorites.length >= 5 },
+      { id: 'explorer', icon: '🧭', title: 'Genre Explorer', desc: 'Try at least 5 different games', unlocked: uniqueCount >= 5 },
+      { id: 'veteran', icon: '🏆', title: 'Arena Veteran', desc: 'Complete 15+ gaming sessions', unlocked: this.state.sessionsPlayed >= 15 }
+    ];
+  }
+};
+
+/**
+ * ============================================================================
+ * 6. GAME ENGINE CONTROLLER & ALL 50 REAL PLAYABLE HTML5 MINI-GAMES
+ * ============================================================================
+ */
+const GameRunner = {
+  activeGame: null,
+  rafId: null,
+  timers: [],
+  listeners: [],
+  paused: false,
+  running: false,
+  score: 0,
+
+  cleanup() {
+    this.running = false;
+    this.paused = false;
+    if (this.rafId) {
+      cancelAnimationFrame(this.rafId);
+      this.rafId = null;
+    }
+    this.timers.forEach(id => { clearInterval(id); clearTimeout(id); });
+    this.timers = [];
+    this.listeners.forEach(({ target, type, fn }) => target.removeEventListener(type, fn));
+    this.listeners = [];
+    const domLayer = document.getElementById('game-dom-layer');
+    if (domLayer) {
+      domLayer.innerHTML = '';
+      domLayer.style.display = 'none';
+    }
+    const canvas = document.getElementById('game-canvas');
+    if (canvas) {
+      canvas.style.display = 'block';
+    }
+  },
+
+  addInterval(fn, ms) {
+    const id = setInterval(() => { if (!this.paused && this.running) fn(); }, ms);
+    this.timers.push(id);
+    return id;
+  },
+
+  on(target, type, fn, opts) {
+    target.addEventListener(type, fn, opts);
+    this.listeners.push({ target, type, fn });
+  },
+
+  updateScore(val) {
+    this.score = Math.max(0, Math.floor(val));
+    const el = document.getElementById('hud-score');
+    if (el) el.textContent = this.score;
+    if (this.activeGame) {
+      const best = Math.max(this.score, Store.state.bestScores[this.activeGame.id] || 0);
+      const bestEl = document.getElementById('hud-best');
+      if (bestEl) bestEl.textContent = best;
+    }
+  },
+
+  endGame(won = false) {
+    if (!this.running) return;
+    this.running = false;
+    SoundFX.play(won ? 'win' : 'hit');
+    if (this.activeGame) {
+      Store.recordSession(this.activeGame.id, this.score);
+    }
+    const overlay = document.getElementById('stage-overlay');
+    if (overlay) {
+      overlay.classList.remove('hidden');
+      overlay.innerHTML = `
+        <div class="text-center p-6 max-w-sm mx-auto bg-[#172635]/95 border border-sky-400/30 rounded-2xl shadow-2xl space-y-4">
+          <div class="text-4xl">${won ? '🏆' : '💥'}</div>
+          <h3 class="text-2xl font-extrabold text-white">${won ? App.t('victory') : App.t('game_over')}</h3>
+          <div class="bg-[#101923] rounded-xl p-3 border border-sky-400/15">
+            <div class="text-xs text-[#A7B5C4] uppercase">${App.t('final_score')}</div>
+            <div class="text-3xl font-extrabold text-[#1A9FFF]">${this.score}</div>
+          </div>
+          <button onclick="GameRunner.launch(GameRunner.activeGame)" class="btn-primary w-full py-3 text-sm font-bold tracking-wide">
+            ↻ ${App.t('play_again')}
+          </button>
+        </div>
+      `;
+    }
+  },
+
+  togglePause() {
+    if (!this.running) return;
+    this.paused = !this.paused;
+    const btn = document.getElementById('btn-pause-toggle');
+    if (btn) btn.textContent = this.paused ? App.t('btn_resume') : App.t('btn_pause');
+    const pauseBanner = document.getElementById('stage-pause-banner');
+    if (pauseBanner) pauseBanner.classList.toggle('hidden', !this.paused);
+  },
+
+  launch(game) {
+    this.cleanup();
+    this.activeGame = game;
+    this.running = true;
+    this.paused = false;
+    this.updateScore(0);
+    SoundFX.play('click');
+
+    const overlay = document.getElementById('stage-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    const pauseBanner = document.getElementById('stage-pause-banner');
+    if (pauseBanner) pauseBanner.classList.add('hidden');
+    const btn = document.getElementById('btn-pause-toggle');
+    if (btn) btn.textContent = App.t('btn_pause');
+
+    const canvas = document.getElementById('game-canvas');
+    const domLayer = document.getElementById('game-dom-layer');
+    const rect = document.getElementById('game-stage-wrapper').getBoundingClientRect();
+    canvas.width = Math.max(320, Math.floor(rect.width));
+    canvas.height = Math.max(400, Math.floor(rect.height));
+
+    const ctx = canvas.getContext('2d');
+    const engineFn = GameEngines[game.engine];
+    if (engineFn) {
+      engineFn({ canvas, ctx, domLayer, runner: this, game });
+    }
+  }
+};
+
+/**
+ * ============================================================================
+ * 7. ALL 50 UNIQUE GAME IMPLEMENTATIONS (CANVAS & INTERACTIVE DOM ENGINES)
+ * ============================================================================
+ */
+const GameEngines = {
+  // --- 1. HIGHWAY RACER ---
+  highway_racer({ canvas, ctx, runner }) {
+    const lanes = 4;
+    let playerLane = 1, score = 0, speed = 5.5, roadOffset = 0;
+    const enemies = [];
+    const spawn = () => {
+      const lane = Math.floor(Math.random() * lanes);
+      enemies.push({ lane, y: -90, color: ['#ef4444', '#f59e0b', '#10b981', '#a855f7'][lane] });
+    };
+    runner.addInterval(spawn, 850);
+    const move = (dir) => { playerLane = Math.max(0, Math.min(lanes - 1, playerLane + dir)); SoundFX.play('click'); };
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') move(-1);
+      if (e.key === 'ArrowRight' || e.key === 'd') move(1);
+    });
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      move((e.clientX - r.left) < r.width / 2 ? -1 : 1);
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      const roadW = Math.min(360, W * 0.82), roadX = (W - roadW) / 2, laneW = roadW / lanes;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(roadX, 0, roadW, H);
+      roadOffset = (roadOffset + speed) % 40;
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.setLineDash([20, 20]); ctx.lineDashOffset = -roadOffset;
+      for (let i = 1; i < lanes; i++) {
+        ctx.beginPath(); ctx.moveTo(roadX + i * laneW, 0); ctx.lineTo(roadX + i * laneW, H); ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      const px = roadX + playerLane * laneW + laneW / 2 - 18, py = H - 105;
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.roundRect(px, py, 36, 68, 8); ctx.fill();
+      ctx.fillStyle = '#bae6fd'; ctx.fillRect(px + 6, py + 12, 24, 16);
+
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const en = enemies[i];
+        en.y += speed;
+        const ex = roadX + en.lane * laneW + laneW / 2 - 18;
+        ctx.fillStyle = en.color; ctx.beginPath(); ctx.roundRect(ex, en.y, 36, 68, 8); ctx.fill();
+        if (en.y + 62 > py && en.y < py + 62 && en.lane === playerLane) return runner.endGame(false);
+        if (en.y > H) { enemies.splice(i, 1); score += 10; speed = Math.min(13, speed + 0.08); runner.updateScore(score); SoundFX.play('score'); }
+      }
+    };
+    loop();
+  },
+
+  // --- 2. DRIFT MASTER ---
+  drift_master({ canvas, ctx, runner }) {
+    let angle = 0, turn = 0, score = 0, trackPhase = 0;
+    const skidMarks = [];
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') turn = -0.06;
+      if (e.key === 'ArrowRight' || e.key === 'd') turn = 0.06;
+    });
+    runner.on(window, 'keyup', () => turn = 0);
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      turn = (e.clientX - r.left) < r.width / 2 ? -0.06 : 0.06;
+    });
+    runner.on(canvas, 'pointerup', () => turn = 0);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      trackPhase += 0.032;
+      angle += turn;
+      const roadCenter = W / 2 + Math.sin(trackPhase) * (W * 0.24);
+      const carX = W / 2 + Math.sin(angle) * (W * 0.34);
+      const carY = H * 0.72;
+      ctx.fillStyle = '#0d1b2a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#263547';
+      ctx.fillRect(roadCenter - 115, 0, 230, H);
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(roadCenter - 122, 0, 7, H); ctx.fillRect(roadCenter + 115, 0, 7, H);
+
+      if (Math.abs(turn) > 0) {
+        skidMarks.push({ x: carX, y: carY + 20 });
+        score += 2;
+        runner.updateScore(score);
+      }
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      skidMarks.forEach(m => { m.y += 5; ctx.fillRect(m.x - 12, m.y, 4, 8); ctx.fillRect(m.x + 8, m.y, 4, 8); });
+      while (skidMarks.length > 80) skidMarks.shift();
+
+      ctx.save();
+      ctx.translate(carX, carY);
+      ctx.rotate(turn * 7);
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.roundRect(-18, -32, 36, 64, 8); ctx.fill();
+      ctx.restore();
+
+      if (Math.abs(carX - roadCenter) > 118) return runner.endGame(false);
+    };
+    loop();
+  },
+
+  // --- 3. EXTREME CAR PARKING ---
+  car_parking({ canvas, ctx, runner }) {
+    let car = { x: 80, y: 340, a: -Math.PI / 2, speed: 0 }, level = 1, score = 0;
+    const keys = {};
+    const spot = { x: canvas.width - 130, y: 70, w: 64, h: 92 };
+    const obstacles = [{ x: canvas.width / 2 - 40, y: 170, w: 80, h: 80 }];
+    runner.on(window, 'keydown', e => keys[e.key.toLowerCase()] = true);
+    runner.on(window, 'keyup', e => keys[e.key.toLowerCase()] = false);
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      const dx = (e.clientX - r.left) - car.x, dy = (e.clientY - r.top) - car.y;
+      car.a = Math.atan2(dy, dx);
+      car.speed = 3.2;
+    });
+    runner.on(canvas, 'pointerup', () => car.speed = 0);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      spot.x = W - 120;
+      if (keys['arrowup'] || keys['w']) car.speed = 3;
+      else if (keys['arrowdown'] || keys['s']) car.speed = -2;
+      else if (Math.abs(car.speed) < 3.1) car.speed *= 0.9;
+      if (keys['arrowleft'] || keys['a']) car.a -= 0.05;
+      if (keys['arrowright'] || keys['d']) car.a += 0.05;
+
+      car.x += Math.cos(car.a) * car.speed;
+      car.y += Math.sin(car.a) * car.speed;
+
+      ctx.fillStyle = '#162130'; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#22c55e'; ctx.lineWidth = 3; ctx.strokeRect(spot.x, spot.y, spot.w, spot.h);
+      ctx.fillStyle = 'rgba(34,197,94,0.18)'; ctx.fillRect(spot.x, spot.y, spot.w, spot.h);
+      ctx.fillStyle = '#66C0F4'; ctx.font = 'bold 12px Inter'; ctx.fillText('PARK HERE', spot.x + 2, spot.y + 50);
+
+      obstacles.forEach(ob => {
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+        if (car.x > ob.x - 16 && car.x < ob.x + ob.w + 16 && car.y > ob.y - 16 && car.y < ob.y + ob.h + 16) {
+          runner.endGame(false);
+        }
+      });
+
+      if (car.x < 15 || car.x > W - 15 || car.y < 15 || car.y > H - 15) return runner.endGame(false);
+
+      ctx.save(); ctx.translate(car.x, car.y); ctx.rotate(car.a + Math.PI / 2);
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.roundRect(-16, -28, 32, 56, 6); ctx.fill();
+      ctx.restore();
+
+      if (car.x > spot.x && car.x < spot.x + spot.w && car.y > spot.y && car.y < spot.y + spot.h) {
+        score += 100 * level; level++; runner.updateScore(score); SoundFX.play('win');
+        car = { x: 80, y: H - 80, a: -Math.PI / 2, speed: 0 };
+        obstacles.push({ x: 140 + Math.random() * (W - 300), y: 90 + Math.random() * (H - 220), w: 55, h: 55 });
+      }
+    };
+    loop();
+  },
+
+  // --- 4. TRAFFIC DODGE ---
+  traffic_dodge({ canvas, ctx, runner }) {
+    let px = canvas.width / 2, py = canvas.height - 45, score = 0;
+    const cars = [];
+    for (let r = 0; r < 5; r++) {
+      cars.push({ x: Math.random() * canvas.width, y: 80 + r * 62, vx: (r % 2 === 0 ? 1 : -1) * (2.5 + r * 0.5), color: r % 2 ? '#f59e0b' : '#ec4899' });
+    }
+    const step = (dx, dy) => {
+      px = Math.max(20, Math.min(canvas.width - 20, px + dx));
+      py = Math.max(20, Math.min(canvas.height - 20, py + dy));
+      if (py <= 45) { score += 50; runner.updateScore(score); SoundFX.play('score'); py = canvas.height - 45; }
+    };
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowUp' || e.key === 'w') step(0, -35);
+      if (e.key === 'ArrowDown' || e.key === 's') step(0, 35);
+      if (e.key === 'ArrowLeft' || e.key === 'a') step(-35, 0);
+      if (e.key === 'ArrowRight' || e.key === 'd') step(35, 0);
+    });
+    runner.on(canvas, 'pointerdown', () => step(0, -45));
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#15803d'; ctx.fillRect(0, 0, W, 55); ctx.fillRect(0, H - 65, W, 65);
+      cars.forEach(c => {
+        c.x += c.vx;
+        if (c.x > W + 60) c.x = -60;
+        if (c.x < -60) c.x = W + 60;
+        ctx.fillStyle = c.color; ctx.beginPath(); ctx.roundRect(c.x - 28, c.y - 16, 56, 32, 6); ctx.fill();
+        if (Math.abs(px - c.x) < 38 && Math.abs(py - c.y) < 26) runner.endGame(false);
+      });
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(px, py, 14, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 5. FORMULA SPEED ---
+  formula_speed({ canvas, ctx, runner }) {
+    let x = canvas.width / 2, turbo = false, score = 0;
+    const rivals = [], pads = [];
+    runner.addInterval(() => rivals.push({ x: canvas.width / 2 + (Math.random() - 0.5) * 240, y: -60 }), 750);
+    runner.addInterval(() => pads.push({ x: canvas.width / 2 + (Math.random() - 0.5) * 220, y: -40 }), 2100);
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') x -= 28;
+      if (e.key === 'ArrowRight' || e.key === 'd') x += 28;
+      if (e.key === 'ArrowUp' || e.key === 'w') turbo = true;
+    });
+    runner.on(window, 'keyup', e => { if (e.key === 'ArrowUp' || e.key === 'w') turbo = false; });
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      x += (e.clientX - r.left) < r.width / 2 ? -35 : 35;
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height, spd = turbo ? 11 : 6.5;
+      x = Math.max(W / 2 - 140, Math.min(W / 2 + 140, x));
+      ctx.fillStyle = '#0b132b'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1c2541'; ctx.fillRect(W / 2 - 160, 0, 320, H);
+      score += turbo ? 3 : 1; runner.updateScore(score);
+
+      pads.forEach((p, idx) => {
+        p.y += spd;
+        ctx.fillStyle = '#22d3ee'; ctx.fillRect(p.x - 18, p.y - 18, 36, 36);
+        if (Math.abs(p.x - x) < 32 && Math.abs(p.y - (H - 90)) < 40) { score += 100; SoundFX.play('score'); pads.splice(idx, 1); }
+      });
+      rivals.forEach(rv => {
+        rv.y += spd * 0.85;
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.roundRect(rv.x - 16, rv.y - 30, 32, 60, 6); ctx.fill();
+        if (Math.abs(rv.x - x) < 28 && Math.abs(rv.y - (H - 90)) < 54) runner.endGame(false);
+      });
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.roundRect(x - 16, H - 120, 32, 60, 6); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 6. MOTORCYCLE RUSH ---
+  motorcycle_rush({ canvas, ctx, runner }) {
+    let bx = canvas.width / 2, lean = 0, score = 0;
+    const trucks = [], coins = [];
+    runner.addInterval(() => trucks.push({ x: canvas.width / 2 + (Math.random() - 0.5) * 240, y: -90 }), 950);
+    runner.addInterval(() => coins.push({ x: canvas.width / 2 + (Math.random() - 0.5) * 220, y: -30 }), 1100);
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') { bx -= 26; lean = -0.25; }
+      if (e.key === 'ArrowRight' || e.key === 'd') { bx += 26; lean = 0.25; }
+    });
+    runner.on(window, 'keyup', () => lean = 0);
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      bx += (e.clientX - r.left) < r.width / 2 ? -32 : 32;
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      bx = Math.max(W / 2 - 140, Math.min(W / 2 + 140, bx));
+      ctx.fillStyle = '#111827'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1f2937'; ctx.fillRect(W / 2 - 155, 0, 310, H);
+
+      coins.forEach((c, i) => {
+        c.y += 6;
+        ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(c.x, c.y, 11, 0, Math.PI * 2); ctx.fill();
+        if (Math.hypot(c.x - bx, c.y - (H - 85)) < 26) { score += 25; runner.updateScore(score); SoundFX.play('score'); coins.splice(i, 1); }
+      });
+      trucks.forEach(t => {
+        t.y += 7;
+        ctx.fillStyle = '#64748b'; ctx.fillRect(t.x - 22, t.y - 45, 44, 90);
+        if (Math.abs(t.x - bx) < 30 && Math.abs(t.y - (H - 85)) < 62) runner.endGame(false);
+      });
+      ctx.save(); ctx.translate(bx, H - 85); ctx.rotate(lean);
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(-8, -24, 16, 48);
+      ctx.restore();
+    };
+    loop();
+  },
+
+  // --- 7. MONSTER TRUCK CHALLENGE ---
+  monster_truck({ canvas, ctx, runner }) {
+    let tx = 90, ty = 220, vy = 0, score = 0;
+    const obstacles = [];
+    runner.addInterval(() => obstacles.push({ x: canvas.width + 40, h: 28 + Math.random() * 28 }), 1400);
+    const jump = () => { if (ty >= 220) { vy = -12.5; SoundFX.play('jump'); } };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space' || e.key === 'ArrowUp') jump(); });
+    runner.on(canvas, 'pointerdown', jump);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height, ground = H - 80;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#78350f'; ctx.fillRect(0, ground, W, 80);
+
+      vy += 0.6; ty += vy;
+      if (ty > ground - 36) { ty = ground - 36; vy = 0; }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.x -= 6;
+        ctx.fillStyle = '#ef4444'; ctx.fillRect(o.x, ground - o.h, 36, o.h);
+        if (tx + 55 > o.x && tx < o.x + 36 && ty + 32 > ground - o.h) return runner.endGame(false);
+        if (o.x < -40) { obstacles.splice(i, 1); score += 20; runner.updateScore(score); SoundFX.play('score'); }
+      }
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.roundRect(tx, ty - 18, 64, 34, 8); ctx.fill();
+      ctx.fillStyle = '#020617';
+      ctx.beginPath(); ctx.arc(tx + 14, ty + 22, 15, 0, Math.PI * 2); ctx.arc(tx + 50, ty + 22, 15, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 8. NEON SNAKE ---
+  neon_snake({ canvas, ctx, runner }) {
+    const size = 20;
+    const cols = Math.floor(canvas.width / size), rows = Math.floor(canvas.height / size);
+    let snake = [{ x: 6, y: 6 }, { x: 5, y: 6 }, { x: 4, y: 6 }], dir = { x: 1, y: 0 }, food = { x: 12, y: 8 }, score = 0;
+    runner.on(window, 'keydown', e => {
+      if ((e.key === 'ArrowUp' || e.key === 'w') && dir.y === 0) dir = { x: 0, y: -1 };
+      if ((e.key === 'ArrowDown' || e.key === 's') && dir.y === 0) dir = { x: 0, y: 1 };
+      if ((e.key === 'ArrowLeft' || e.key === 'a') && dir.x === 0) dir = { x: -1, y: 0 };
+      if ((e.key === 'ArrowRight' || e.key === 'd') && dir.x === 0) dir = { x: 1, y: 0 };
+    });
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      const cx = e.clientX - r.left, cy = e.clientY - r.top;
+      const head = snake[0];
+      if (Math.abs(cx - head.x * size) > Math.abs(cy - head.y * size)) {
+        dir = { x: cx > head.x * size ? 1 : -1, y: 0 };
+      } else {
+        dir = { x: 0, y: cy > head.y * size ? 1 : -1 };
+      }
+    });
+    runner.addInterval(() => {
+      const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+      if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || snake.some(s => s.x === head.x && s.y === head.y)) {
+        return runner.endGame(false);
+      }
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score += 10; runner.updateScore(score); SoundFX.play('score');
+        food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+      } else {
+        snake.pop();
+      }
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(food.x * size + size / 2, food.y * size + size / 2, size / 2.4, 0, Math.PI * 2); ctx.fill();
+      snake.forEach((s, i) => {
+        ctx.fillStyle = i === 0 ? '#66C0F4' : '#1A9FFF';
+        ctx.beginPath(); ctx.roundRect(s.x * size + 1, s.y * size + 1, size - 2, size - 2, 5); ctx.fill();
+      });
+    }, 115);
+  },
+
+  // --- 9. BRICK BREAKER ---
+  brick_breaker({ canvas, ctx, runner }) {
+    let paddleX = canvas.width / 2 - 50, ball = { x: canvas.width / 2, y: canvas.height - 60, dx: 4, dy: -4 }, score = 0;
+    const bricks = [], cols = 7, rows = 4, bw = (canvas.width - 60) / cols;
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) bricks.push({ x: 30 + c * bw, y: 45 + r * 28, alive: true });
+    runner.on(canvas, 'pointermove', e => { const r = canvas.getBoundingClientRect(); paddleX = (e.clientX - r.left) - 50; });
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft') paddleX -= 35;
+      if (e.key === 'ArrowRight') paddleX += 35;
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      paddleX = Math.max(0, Math.min(W - 100, paddleX));
+      ball.x += ball.dx; ball.y += ball.dy;
+      if (ball.x < 8 || ball.x > W - 8) ball.dx *= -1;
+      if (ball.y < 8) ball.dy *= -1;
+      if (ball.y > H - 34 && ball.x > paddleX && ball.x < paddleX + 100) { ball.dy = -Math.abs(ball.dy); SoundFX.play('jump'); }
+      if (ball.y > H) return runner.endGame(false);
+
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.roundRect(paddleX, H - 24, 100, 12, 6); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, 8, 0, Math.PI * 2); ctx.fill();
+
+      let remaining = 0;
+      bricks.forEach((b, idx) => {
+        if (!b.alive) return;
+        remaining++;
+        ctx.fillStyle = ['#38bdf8', '#0ea5e9', '#2563eb', '#6366f1'][idx % 4];
+        ctx.beginPath(); ctx.roundRect(b.x + 2, b.y, bw - 4, 22, 4); ctx.fill();
+        if (ball.x > b.x && ball.x < b.x + bw && ball.y > b.y && ball.y < b.y + 22) {
+          b.alive = false; ball.dy *= -1; score += 15; runner.updateScore(score); SoundFX.play('score');
+        }
+      });
+      if (remaining === 0) runner.endGame(true);
+    };
+    loop();
+  },
+
+  // --- 10. SPACE INVADERS ---
+  space_invaders({ canvas, ctx, runner }) {
+    let sx = canvas.width / 2, dir = 1, score = 0;
+    const bullets = [], aliens = [];
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 8; c++) aliens.push({ x: 50 + c * 46, y: 40 + r * 36, alive: true });
+    const shoot = () => { bullets.push({ x: sx, y: canvas.height - 48 }); SoundFX.play('jump'); };
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') sx -= 24;
+      if (e.key === 'ArrowRight' || e.key === 'd') sx += 24;
+      if (e.code === 'Space') shoot();
+    });
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      sx = e.clientX - r.left; shoot();
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      sx = Math.max(25, Math.min(W - 25, sx));
+      ctx.fillStyle = '#090d16'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.moveTo(sx, H - 48); ctx.lineTo(sx - 20, H - 20); ctx.lineTo(sx + 20, H - 20); ctx.fill();
+
+      let edge = false, aliveCount = 0;
+      aliens.forEach(a => {
+        if (!a.alive) return;
+        aliveCount++;
+        a.x += dir * 1.4;
+        if (a.x > W - 30 || a.x < 30) edge = true;
+        ctx.fillStyle = '#22d3ee'; ctx.fillRect(a.x - 14, a.y - 10, 28, 20);
+        if (a.y > H - 65) runner.endGame(false);
+      });
+      if (aliveCount === 0) return runner.endGame(true);
+      if (edge) { dir *= -1; aliens.forEach(a => a.y += 18); }
+
+      for (let i = bullets.length - 1; i >= 0; i--) {
+        const b = bullets[i]; b.y -= 8;
+        ctx.fillStyle = '#fbbf24'; ctx.fillRect(b.x - 2, b.y, 4, 12);
+        aliens.forEach(a => {
+          if (a.alive && Math.abs(b.x - a.x) < 18 && Math.abs(b.y - a.y) < 14) {
+            a.alive = false; bullets.splice(i, 1); score += 20; runner.updateScore(score); SoundFX.play('score');
+          }
+        });
+      }
+    };
+    loop();
+  },
+
+  // --- 11. FLAPPY WINGS ---
+  flappy_wings({ canvas, ctx, runner }) {
+    let by = canvas.height / 2, vy = 0, score = 0;
+    const pipes = [];
+    runner.addInterval(() => pipes.push({ x: canvas.width, gapY: 90 + Math.random() * (canvas.height - 220), passed: false }), 1500);
+    const flap = () => { vy = -7.5; SoundFX.play('jump'); };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space' || e.key === 'ArrowUp') flap(); });
+    runner.on(canvas, 'pointerdown', flap);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      vy += 0.42; by += vy;
+      if (by < 12 || by > H - 12) return runner.endGame(false);
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      pipes.forEach(p => {
+        p.x -= 3.5;
+        ctx.fillStyle = '#1A9FFF';
+        ctx.fillRect(p.x, 0, 52, p.gapY - 62);
+        ctx.fillRect(p.x, p.gapY + 62, 52, H);
+        if (95 > p.x && 65 < p.x + 52 && (by - 12 < p.gapY - 62 || by + 12 > p.gapY + 62)) runner.endGame(false);
+        if (!p.passed && p.x + 52 < 80) { p.passed = true; score += 10; runner.updateScore(score); SoundFX.play('score'); }
+      });
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(80, by, 14, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 12. STACK TOWER ---
+  stack_tower({ canvas, ctx, runner }) {
+    const stack = [{ x: canvas.width / 2 - 80, w: 160 }];
+    let cur = { x: 20, w: 160, dir: 4 }, score = 0;
+    const drop = () => {
+      const prev = stack[stack.length - 1];
+      const left = Math.max(prev.x, cur.x), right = Math.min(prev.x + prev.w, cur.x + cur.w);
+      const overlap = right - left;
+      if (overlap <= 4) return runner.endGame(false);
+      stack.push({ x: left, w: overlap });
+      score += 10; runner.updateScore(score); SoundFX.play('score');
+      cur = { x: 10, w: overlap, dir: (cur.dir > 0 ? 1 : -1) * Math.min(9, 4 + score * 0.04) };
+    };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space') drop(); });
+    runner.on(canvas, 'pointerdown', drop);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      cur.x += cur.dir;
+      if (cur.x < 10 || cur.x + cur.w > W - 10) cur.dir *= -1;
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      const visible = stack.slice(-12);
+      visible.forEach((b, idx) => {
+        ctx.fillStyle = `hsl(${200 + idx * 8}, 85%, 55%)`;
+        ctx.fillRect(b.x, H - 30 - idx * 26, b.w, 24);
+      });
+      ctx.fillStyle = '#66C0F4';
+      ctx.fillRect(cur.x, H - 30 - visible.length * 26, cur.w, 24);
+    };
+    loop();
+  },
+
+  // --- 13. HELIX DROP ---
+  helix_drop({ canvas, ctx, runner }) {
+    let rot = 0, ballY = 90, vy = 0, score = 0;
+    const rings = [180, 270, 360, 450].map((y, i) => ({ y, gap: i * 1.3 }));
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') rot -= 0.35;
+      if (e.key === 'ArrowRight' || e.key === 'd') rot += 0.35;
+    });
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect();
+      rot += (e.clientX - r.left) < r.width / 2 ? -0.45 : 0.45;
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      vy += 0.35; ballY += vy;
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(W / 2 - 14, 0, 28, H);
+
+      rings.forEach(rg => {
+        rg.y -= 1.8;
+        if (rg.y < 50) { rg.y = H - 20; rg.gap = Math.random() * 5; score += 10; runner.updateScore(score); SoundFX.play('score'); }
+        const open = Math.sin(rot + rg.gap) > 0.25;
+        ctx.fillStyle = open ? '#22c55e' : '#1A9FFF';
+        ctx.fillRect(W / 2 - 110, rg.y, open ? 65 : 220, 14);
+        if (open) ctx.fillRect(W / 2 + 45, rg.y, 65, 14);
+        if (Math.abs(ballY - rg.y) < 14 && vy > 0) {
+          if (open) { score += 15; runner.updateScore(score); }
+          else { vy = -6.8; SoundFX.play('jump'); }
+        }
+      });
+      if (ballY > H) ballY = 80;
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(W / 2, ballY, 11, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 14. COLOR SWITCH ---
+  color_switch({ canvas, ctx, runner }) {
+    const colors = ['#1A9FFF', '#f43f5e', '#fbbf24', '#22c55e'];
+    let ballColor = 0, by = canvas.height - 90, vy = 0, ringAngle = 0, score = 0;
+    const bounce = () => { vy = -7.2; SoundFX.play('jump'); };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space') bounce(); });
+    runner.on(canvas, 'pointerdown', bounce);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height, cx = W / 2, cy = H * 0.42;
+      vy += 0.35; by = Math.min(H - 60, by + vy);
+      ringAngle += 0.035;
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      for (let i = 0; i < 4; i++) {
+        ctx.strokeStyle = colors[i]; ctx.lineWidth = 14;
+        ctx.beginPath(); ctx.arc(cx, cy, 78, ringAngle + i * Math.PI / 2, ringAngle + (i + 1) * Math.PI / 2); ctx.stroke();
+      }
+      ctx.fillStyle = colors[ballColor]; ctx.beginPath(); ctx.arc(cx, by, 12, 0, Math.PI * 2); ctx.fill();
+      if (by < cy - 95) {
+        by = H - 80; vy = 0; score += 25; runner.updateScore(score); SoundFX.play('score');
+        ballColor = (ballColor + 1) % 4;
+      }
+    };
+    loop();
+  },
+
+  // --- 15. KNIFE HIT ---
+  knife_hit({ canvas, ctx, runner }) {
+    let angle = 0, score = 0;
+    const stuck = [0.4, 2.5];
+    const throwKnife = () => {
+      const norm = ((Math.PI / 2 - angle) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+      if (stuck.some(a => Math.abs(a - norm) < 0.24)) return runner.endGame(false);
+      stuck.push(norm); score += 15; runner.updateScore(score); SoundFX.play('score');
+    };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space') throwKnife(); });
+    runner.on(canvas, 'pointerdown', throwKnife);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height, cx = W / 2, cy = H * 0.36;
+      angle += 0.04;
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      stuck.forEach(a => {
+        ctx.save(); ctx.translate(cx, cy); ctx.rotate(angle + a);
+        ctx.fillStyle = '#94a3b8'; ctx.fillRect(-3, 55, 6, 42);
+        ctx.restore();
+      });
+      ctx.fillStyle = '#d97706'; ctx.beginPath(); ctx.arc(cx, cy, 58, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(cx - 4, H - 90, 8, 46);
+    };
+    loop();
+  },
+
+  // --- 16. 2048 ---
+  game_2048({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    let grid = Array(16).fill(0), score = 0;
+    const addTile = () => {
+      const empty = grid.map((v, i) => v === 0 ? i : -1).filter(i => i !== -1);
+      if (empty.length) grid[empty[Math.floor(Math.random() * empty.length)]] = Math.random() < 0.9 ? 2 : 4;
+    };
+    addTile(); addTile();
+    const slide = row => {
+      let arr = row.filter(v => v);
+      for (let i = 0; i < arr.length - 1; i++) {
+        if (arr[i] === arr[i + 1]) { arr[i] *= 2; score += arr[i]; arr[i + 1] = 0; SoundFX.play('score'); }
+      }
+      arr = arr.filter(v => v);
+      while (arr.length < 4) arr.push(0);
+      return arr;
+    };
+    const move = dir => {
+      const old = grid.join(',');
+      for (let i = 0; i < 4; i++) {
+        let line = [];
+        for (let j = 0; j < 4; j++) line.push(dir === 'L' || dir === 'R' ? grid[i * 4 + j] : grid[j * 4 + i]);
+        if (dir === 'R' || dir === 'D') line.reverse();
+        line = slide(line);
+        if (dir === 'R' || dir === 'D') line.reverse();
+        for (let j = 0; j < 4; j++) {
+          if (dir === 'L' || dir === 'R') grid[i * 4 + j] = line[j];
+          else grid[j * 4 + i] = line[j];
+        }
+      }
+      if (grid.join(',') !== old) { addTile(); runner.updateScore(score); render(); }
+    };
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 flex flex-col items-center gap-3">
+        <div class="grid grid-cols-4 gap-2 bg-[#172635] p-3 rounded-xl border border-sky-400/20">
+          ${grid.map(v => `<div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg flex items-center justify-center font-extrabold text-xl ${v ? 'bg-[#1A9FFF] text-white' : 'bg-[#101923] text-transparent'}">${v || 0}</div>`).join('')}
+        </div>
+        <div class="flex gap-2">
+          <button id="m2-l" class="btn-secondary px-4 py-2">←</button>
+          <button id="m2-u" class="btn-secondary px-4 py-2">↑</button>
+          <button id="m2-d" class="btn-secondary px-4 py-2">↓</button>
+          <button id="m2-r" class="btn-secondary px-4 py-2">→</button>
+        </div>
+      </div>`;
+      domLayer.querySelector('#m2-l').onclick = () => move('L');
+      domLayer.querySelector('#m2-r').onclick = () => move('R');
+      domLayer.querySelector('#m2-u').onclick = () => move('U');
+      domLayer.querySelector('#m2-d').onclick = () => move('D');
+    };
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft') move('L'); if (e.key === 'ArrowRight') move('R');
+      if (e.key === 'ArrowUp') move('U'); if (e.key === 'ArrowDown') move('D');
+    });
+    render();
+  },
+
+  // --- 17. SUDOKU ---
+  sudoku({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const solution = [
+      5,3,4,6,7,8,9,1,2, 6,7,2,1,9,5,3,4,8, 1,9,8,3,4,2,5,6,7,
+      8,5,9,7,6,1,4,2,3, 4,2,6,8,5,3,7,9,1, 7,1,3,9,2,4,8,5,6,
+      9,6,1,5,3,7,2,8,4, 2,8,7,4,1,9,6,3,5, 3,4,5,2,8,6,1,7,9
+    ];
+    const board = solution.map((v, i) => (i % 3 === 0 || i % 5 === 0) ? 0 : v);
+    let selected = board.indexOf(0), score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3 flex flex-col items-center gap-3">
+        <div class="grid grid-cols-9 bg-[#172635] p-1.5 rounded-xl border border-sky-400/25">
+          ${board.map((v, i) => `<button data-idx="${i}" class="sdk-cell w-8 h-8 sm:w-9 sm:h-9 border border-sky-400/15 text-sm font-bold ${i === selected ? 'bg-[#1A9FFF] text-white' : 'bg-[#101923] text-[#66C0F4]'}">${v || ''}</button>`).join('')}
+        </div>
+        <div class="flex gap-1.5 flex-wrap justify-center">
+          ${[1,2,3,4,5,6,7,8,9].map(n => `<button data-num="${n}" class="sdk-num btn-secondary w-9 h-9 font-bold">${n}</button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.sdk-cell').forEach(b => b.onclick = () => { selected = Number(b.dataset.idx); render(); });
+      domLayer.querySelectorAll('.sdk-num').forEach(b => b.onclick = () => {
+        const n = Number(b.dataset.num);
+        if (selected >= 0 && solution[selected] === n) {
+          board[selected] = n; score += 25; runner.updateScore(score); SoundFX.play('score');
+          if (!board.includes(0)) return runner.endGame(true);
+          selected = board.indexOf(0);
+          render();
+        } else SoundFX.play('hit');
+      });
+    };
+    render();
+  },
+
+  // --- 18. MINESWEEPER ---
+  minesweeper({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const size = 8, total = size * size;
+    const mines = new Set();
+    while (mines.size < 10) mines.add(Math.floor(Math.random() * total));
+    const revealed = Array(total).fill(false), flagged = Array(total).fill(false);
+    let flagMode = false, score = 0;
+    const countMines = idx => {
+      const r = Math.floor(idx / size), c = idx % size;
+      let n = 0;
+      for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < size && nc >= 0 && nc < size && mines.has(nr * size + nc)) n++;
+      }
+      return n;
+    };
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3 flex flex-col items-center gap-3">
+        <button id="ms-flag-btn" class="btn-secondary px-4 py-1.5 text-xs font-bold">${flagMode ? '🚩 Flag Mode: ON' : '🔍 Dig Mode: ON'}</button>
+        <div class="grid grid-cols-8 gap-1 bg-[#172635] p-2 rounded-xl">
+          ${revealed.map((rev, i) => {
+            const cnt = countMines(i);
+            return `<button data-i="${i}" class="ms-c w-9 h-9 rounded font-bold text-sm ${rev ? 'bg-[#101923] text-[#66C0F4]' : 'bg-[#1B2D40] hover:bg-[#223850] text-white'}">${flagged[i] ? '🚩' : rev ? (cnt || '') : ''}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelector('#ms-flag-btn').onclick = () => { flagMode = !flagMode; render(); };
+      domLayer.querySelectorAll('.ms-c').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (flagMode) { flagged[i] = !flagged[i]; return render(); }
+        if (mines.has(i)) return runner.endGame(false);
+        if (!revealed[i]) { revealed[i] = true; score += 10; runner.updateScore(score); SoundFX.play('score'); }
+        if (revealed.filter(Boolean).length === total - mines.size) return runner.endGame(true);
+        render();
+      });
+    };
+    render();
+  },
+
+  // --- 19. MATCH 3 ---
+  match_3({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const gems = ['💎', '🔷', '🔶', '🟢', '🟣'];
+    const grid = Array.from({ length: 36 }, () => gems[Math.floor(Math.random() * gems.length)]);
+    let sel = -1, score = 0;
+    const clearMatches = () => {
+      let matched = false;
+      for (let r = 0; r < 6; r++) for (let c = 0; c < 4; c++) {
+        const i = r * 6 + c;
+        if (grid[i] && grid[i] === grid[i + 1] && grid[i] === grid[i + 2]) {
+          grid[i] = grid[i + 1] = grid[i + 2] = gems[Math.floor(Math.random() * gems.length)];
+          score += 30; matched = true;
+        }
+      }
+      if (matched) { runner.updateScore(score); SoundFX.play('score'); }
+    };
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3">
+        <div class="grid grid-cols-6 gap-1.5 bg-[#172635] p-3 rounded-xl">
+          ${grid.map((g, i) => `<button data-i="${i}" class="m3-b w-11 h-11 rounded-lg text-2xl flex items-center justify-center ${sel === i ? 'bg-[#1A9FFF]' : 'bg-[#101923]'}">${g}</button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.m3-b').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (sel === -1) { sel = i; } else {
+          [grid[sel], grid[i]] = [grid[i], grid[sel]];
+          sel = -1; clearMatches();
+        }
+        render();
+      });
+    };
+    render();
+  },
+
+  // --- 20. BLOCK PUZZLE ---
+  block_puzzle({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const board = Array(64).fill(0);
+    const shapes = [[[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[0,2]], [[0,0],[1,0],[2,0]]];
+    let curShape = shapes[0], score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3 flex flex-col items-center gap-3">
+        <div class="text-xs text-[#66C0F4]">Next Piece: ${curShape.length} blocks — Tap board to place</div>
+        <div class="grid grid-cols-8 gap-1 bg-[#172635] p-2 rounded-xl">
+          ${board.map((v, i) => `<button data-i="${i}" class="bp-c w-8 h-8 rounded ${v ? 'bg-[#1A9FFF]' : 'bg-[#101923]'}"></button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.bp-c').forEach(b => b.onclick = () => {
+        const idx = Number(b.dataset.i), r = Math.floor(idx / 8), c = idx % 8;
+        const cells = curShape.map(([dr, dc]) => (r + dr) * 8 + (c + dc));
+        if (curShape.every(([dr, dc]) => r + dr < 8 && c + dc < 8 && !board[(r + dr) * 8 + (c + dc)])) {
+          cells.forEach(ci => board[ci] = 1);
+          score += 20;
+          for (let row = 0; row < 8; row++) {
+            if ([0,1,2,3,4,5,6,7].every(col => board[row * 8 + col])) {
+              for (let col = 0; col < 8; col++) board[row * 8 + col] = 0;
+              score += 100;
+            }
+          }
+          runner.updateScore(score); SoundFX.play('score');
+          curShape = shapes[Math.floor(Math.random() * shapes.length)];
+          render();
+        }
+      });
+    };
+    render();
+  },
+
+  // --- 21. BUBBLE SHOOTER ---
+  bubble_shooter({ canvas, ctx, runner }) {
+    const palette = ['#1A9FFF', '#f43f5e', '#fbbf24', '#22c55e'];
+    const orbs = [];
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) orbs.push({ x: 45 + c * 38, y: 40 + r * 36, color: palette[(r + c) % 4] });
+    let shot = null, nextColor = palette[0], score = 0;
+    runner.on(canvas, 'pointerdown', e => {
+      if (shot) return;
+      const r = canvas.getBoundingClientRect(), tx = e.clientX - r.left, ty = e.clientY - r.top;
+      const a = Math.atan2(ty - (canvas.height - 30), tx - canvas.width / 2);
+      shot = { x: canvas.width / 2, y: canvas.height - 30, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9, color: nextColor };
+      nextColor = palette[Math.floor(Math.random() * palette.length)];
+      SoundFX.play('jump');
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      orbs.forEach(o => { ctx.fillStyle = o.color; ctx.beginPath(); ctx.arc(o.x, o.y, 16, 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = nextColor; ctx.beginPath(); ctx.arc(W / 2, H - 30, 16, 0, Math.PI * 2); ctx.fill();
+      if (shot) {
+        shot.x += shot.vx; shot.y += shot.vy;
+        if (shot.x < 16 || shot.x > W - 16) shot.vx *= -1;
+        ctx.fillStyle = shot.color; ctx.beginPath(); ctx.arc(shot.x, shot.y, 16, 0, Math.PI * 2); ctx.fill();
+        const hitIdx = orbs.findIndex(o => Math.hypot(o.x - shot.x, o.y - shot.y) < 30);
+        if (hitIdx !== -1 || shot.y < 24) {
+          if (hitIdx !== -1 && orbs[hitIdx].color === shot.color) {
+            orbs.splice(hitIdx, 1); score += 30; runner.updateScore(score); SoundFX.play('score');
+          } else orbs.push({ x: shot.x, y: shot.y, color: shot.color });
+          shot = null;
+          if (orbs.length === 0) runner.endGame(true);
+        }
+      }
+    };
+    loop();
+  },
+
+  // --- 22. MEMORY CARDS ---
+  memory_cards({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const icons = ['🚀','🎮','⚡','🛡️','🔥','💎','🎯','🏆'];
+    const deck = [...icons, ...icons].sort(() => Math.random() - 0.5);
+    const matched = Array(16).fill(false);
+    let flipped = [], score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3">
+        <div class="grid grid-cols-4 gap-2.5 bg-[#172635] p-3 rounded-xl">
+          ${deck.map((ic, i) => {
+            const show = matched[i] || flipped.includes(i);
+            return `<button data-i="${i}" class="mc-b w-16 h-16 sm:w-20 sm:h-20 rounded-xl text-2xl font-bold ${show ? 'bg-[#1A9FFF] text-white' : 'bg-[#101923] text-[#66C0F4]'}">${show ? ic : '?'}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.mc-b').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (matched[i] || flipped.includes(i) || flipped.length === 2) return;
+        flipped.push(i); render();
+        if (flipped.length === 2) {
+          const [a, c] = flipped;
+          if (deck[a] === deck[c]) {
+            matched[a] = matched[c] = true; flipped = []; score += 50; runner.updateScore(score); SoundFX.play('score');
+            if (matched.every(Boolean)) return runner.endGame(true);
+            render();
+          } else {
+            setTimeout(() => { flipped = []; render(); }, 600);
+          }
+        }
+      });
+    };
+    render();
+  },
+
+  // --- 23. WORD PUZZLE ---
+  word_puzzle({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const words = ['STEAM', 'GAMER', 'LASER', 'ARENA', 'TURBO', 'PIXEL'];
+    const target = words[Math.floor(Math.random() * words.length)];
+    let guesses = [], current = '', score = 0;
+    const submit = () => {
+      if (current.length !== 5) return;
+      guesses.push(current);
+      if (current === target) { score = 300 - guesses.length * 30; runner.updateScore(score); return runner.endGame(true); }
+      current = '';
+      if (guesses.length >= 6) return runner.endGame(false);
+      render();
+    };
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3 flex flex-col items-center gap-3">
+        <div class="space-y-1.5">
+          ${[0,1,2,3,4,5].map(r => {
+            const word = guesses[r] || (r === guesses.length ? current.padEnd(5, ' ') : '     ');
+            return `<div class="flex gap-1.5">${word.split('').map((ch, c) => {
+              let bg = 'bg-[#101923]';
+              if (guesses[r]) bg = target[c] === ch ? 'bg-emerald-600' : target.includes(ch) ? 'bg-amber-600' : 'bg-slate-700';
+              return `<div class="w-10 h-10 rounded-lg ${bg} border border-sky-400/20 flex items-center justify-center font-extrabold text-lg">${ch}</div>`;
+            }).join('')}</div>`;
+          }).join('')}
+        </div>
+        <div class="flex gap-2">
+          <input id="wp-in" maxlength="5" value="${current}" placeholder="5-LETTER WORD" class="bg-[#101923] border border-sky-400/30 rounded-lg px-3 py-1.5 uppercase font-bold text-center w-40 outline-none"/>
+          <button id="wp-go" class="btn-primary px-4 py-1.5 text-sm">Check</button>
+        </div>
+      </div>`;
+      const inp = domLayer.querySelector('#wp-in');
+      inp.oninput = e => { current = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); };
+      inp.onkeydown = e => { if (e.key === 'Enter') submit(); };
+      domLayer.querySelector('#wp-go').onclick = submit;
+      inp.focus();
+    };
+    render();
+  },
+
+  // --- 24. ZOMBIE SURVIVAL ---
+  zombie_survival({ canvas, ctx, runner }) {
+    let px = canvas.width / 2, py = canvas.height / 2, score = 0;
+    const zombies = [], bullets = [], keys = {};
+    runner.addInterval(() => {
+      const edge = Math.floor(Math.random() * 4);
+      zombies.push({ x: edge === 0 ? 0 : edge === 1 ? canvas.width : Math.random() * canvas.width, y: edge === 2 ? 0 : edge === 3 ? canvas.height : Math.random() * canvas.height });
+    }, 900);
+    runner.on(window, 'keydown', e => keys[e.key.toLowerCase()] = true);
+    runner.on(window, 'keyup', e => keys[e.key.toLowerCase()] = false);
+    runner.on(canvas, 'pointerdown', e => {
+      const r = canvas.getBoundingClientRect(), a = Math.atan2((e.clientY - r.top) - py, (e.clientX - r.left) - px);
+      bullets.push({ x: px, y: py, vx: Math.cos(a) * 9, vy: Math.sin(a) * 9 });
+      SoundFX.play('jump');
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      if (keys['w'] || keys['arrowup']) py -= 3.5;
+      if (keys['s'] || keys['arrowdown']) py += 3.5;
+      if (keys['a'] || keys['arrowleft']) px -= 3.5;
+      if (keys['d'] || keys['arrowright']) px += 3.5;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(px, py, 14, 0, Math.PI * 2); ctx.fill();
+
+      bullets.forEach((b, bi) => {
+        b.x += b.vx; b.y += b.vy;
+        ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI * 2); ctx.fill();
+        zombies.forEach((z, zi) => {
+          if (Math.hypot(z.x - b.x, z.y - b.y) < 18) {
+            zombies.splice(zi, 1); bullets.splice(bi, 1); score += 15; runner.updateScore(score); SoundFX.play('score');
+          }
+        });
+      });
+      zombies.forEach(z => {
+        const a = Math.atan2(py - z.y, px - z.x);
+        z.x += Math.cos(a) * 1.7; z.y += Math.sin(a) * 1.7;
+        ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(z.x, z.y, 13, 0, Math.PI * 2); ctx.fill();
+        if (Math.hypot(z.x - px, z.y - py) < 22) runner.endGame(false);
+      });
+    };
+    loop();
+  },
+
+  // --- 25. SPACE SHOOTER ---
+  space_shooter({ canvas, ctx, runner }) {
+    let sx = canvas.width / 2, sy = canvas.height - 60, score = 0;
+    const foes = [], shots = [];
+    runner.addInterval(() => foes.push({ x: 30 + Math.random() * (canvas.width - 60), y: -20 }), 650);
+    runner.addInterval(() => shots.push({ x: sx, y: sy - 20 }), 240);
+    runner.on(canvas, 'pointermove', e => { const r = canvas.getBoundingClientRect(); sx = e.clientX - r.left; sy = e.clientY - r.top; });
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft') sx -= 28; if (e.key === 'ArrowRight') sx += 28;
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      ctx.fillStyle = '#070b14'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.moveTo(sx, sy - 22); ctx.lineTo(sx - 18, sy + 16); ctx.lineTo(sx + 18, sy + 16); ctx.fill();
+      shots.forEach(s => { s.y -= 9; ctx.fillStyle = '#22d3ee'; ctx.fillRect(s.x - 2, s.y, 4, 12); });
+      foes.forEach((f, fi) => {
+        f.y += 3.8;
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(f.x, f.y, 16, 0, Math.PI * 2); ctx.fill();
+        if (Math.hypot(f.x - sx, f.y - sy) < 26) runner.endGame(false);
+        shots.forEach((s, si) => {
+          if (Math.hypot(f.x - s.x, f.y - s.y) < 20) {
+            foes.splice(fi, 1); shots.splice(si, 1); score += 20; runner.updateScore(score); SoundFX.play('score');
+          }
+        });
+      });
+    };
+    loop();
+  },
+
+  // --- 26. NINJA JUMP ---
+  ninja_jump({ canvas, ctx, runner }) {
+    let side = 0, ny = canvas.height - 90, score = 0;
+    const spikes = [];
+    runner.addInterval(() => spikes.push({ side: Math.random() < 0.5 ? 0 : 1, y: -20 }), 950);
+    const hop = () => { side = 1 - side; score += 5; runner.updateScore(score); SoundFX.play('jump'); };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space') hop(); });
+    runner.on(canvas, 'pointerdown', hop);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, 36, H); ctx.fillRect(W - 36, 0, 36, H);
+      const nx = side === 0 ? 48 : W - 48;
+      ctx.fillStyle = '#38bdf8'; ctx.beginPath(); ctx.arc(nx, ny, 14, 0, Math.PI * 2); ctx.fill();
+      spikes.forEach(sp => {
+        sp.y += 5;
+        const sx = sp.side === 0 ? 46 : W - 46;
+        ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(sx, sp.y, 13, 0, Math.PI * 2); ctx.fill();
+        if (sp.side === side && Math.abs(sp.y - ny) < 22) runner.endGame(false);
+      });
+    };
+    loop();
+  },
+
+  // --- 27. PLATFORM ADVENTURE ---
+  platform_adventure({ canvas, ctx, runner }) {
+    let p = { x: 40, y: 200, vx: 0, vy: 0 }, score = 0;
+    const keys = {};
+    const plats = [{ x: 20, y: 310, w: 150 }, { x: 200, y: 250, w: 140 }, { x: 370, y: 190, w: 150 }];
+    let gem = { x: 430, y: 155 };
+    runner.on(window, 'keydown', e => keys[e.key.toLowerCase()] = true);
+    runner.on(window, 'keyup', e => keys[e.key.toLowerCase()] = false);
+    runner.on(canvas, 'pointerdown', () => { p.vy = -10; p.vx = 3.5; });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      if (keys['arrowleft'] || keys['a']) p.vx = -4;
+      else if (keys['arrowright'] || keys['d']) p.vx = 4;
+      else p.vx *= 0.85;
+      if ((keys['arrowup'] || keys['w'] || keys[' ']) && p.vy === 0) { p.vy = -10.5; SoundFX.play('jump'); }
+      p.vy += 0.48; p.x += p.vx; p.y += p.vy;
+      if (p.y > H) return runner.endGame(false);
+
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      plats.forEach(pl => {
+        ctx.fillStyle = '#1A9FFF'; ctx.fillRect(pl.x, pl.y, pl.w, 14);
+        if (p.vy > 0 && p.x + 12 > pl.x && p.x - 12 < pl.x + pl.w && p.y + 14 >= pl.y && p.y + 14 <= pl.y + 16) {
+          p.y = pl.y - 14; p.vy = 0;
+        }
+      });
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(gem.x, gem.y, 12, 0, Math.PI * 2); ctx.fill();
+      if (Math.hypot(p.x - gem.x, p.y - gem.y) < 26) {
+        score += 100; runner.updateScore(score); SoundFX.play('win');
+        p = { x: 40, y: 200, vx: 0, vy: 0 };
+      }
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x - 12, p.y - 14, 24, 28);
+    };
+    loop();
+  },
+
+  // --- 28. ROBOT BATTLE ---
+  robot_battle({ canvas, ctx, runner }) {
+    let pHp = 100, eHp = 100, shield = false, score = 0;
+    const fire = () => {
+      eHp -= 20; score += 40; runner.updateScore(score); SoundFX.play('score');
+      if (eHp <= 0) { eHp = 100; score += 100; runner.updateScore(score); SoundFX.play('win'); }
+    };
+    runner.addInterval(() => {
+      if (!shield) pHp -= 15;
+      if (pHp <= 0) runner.endGame(false);
+    }, 1500);
+    runner.on(window, 'keydown', e => {
+      if (e.code === 'Space') fire();
+      if (e.key === 's' || e.key === 'ArrowDown') shield = true;
+    });
+    runner.on(window, 'keyup', () => shield = false);
+    runner.on(canvas, 'pointerdown', fire);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1A9FFF'; ctx.fillRect(70, H / 2 - 40, 60, 80);
+      ctx.fillStyle = '#f43f5e'; ctx.fillRect(W - 130, H / 2 - 40, 60, 80);
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(50, 30, pHp * 1.4, 14);
+      ctx.fillStyle = '#ef4444'; ctx.fillRect(W - 190, 30, eHp * 1.4, 14);
+      ctx.fillStyle = '#66C0F4'; ctx.font = 'bold 14px Inter'; ctx.fillText('TAP / SPACE TO FIRE RAILGUN', W / 2 - 105, H - 30);
+    };
+    loop();
+  },
+
+  // --- 29. ALIEN ATTACK ---
+  alien_attack({ canvas, ctx, runner }) {
+    let angle = 0, score = 0;
+    const ufos = [], lasers = [];
+    runner.addInterval(() => {
+      const a = Math.random() * Math.PI * 2;
+      ufos.push({ x: canvas.width / 2 + Math.cos(a) * 280, y: canvas.height / 2 + Math.sin(a) * 240, a });
+    }, 950);
+    runner.addInterval(() => lasers.push({ x: canvas.width / 2, y: canvas.height / 2, a: angle }), 250);
+    runner.on(canvas, 'pointermove', e => {
+      const r = canvas.getBoundingClientRect();
+      angle = Math.atan2((e.clientY - r.top) - canvas.height / 2, (e.clientX - r.left) - canvas.width / 2);
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      ctx.fillStyle = '#090d16'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.arc(cx, cy, 24, 0, Math.PI * 2); ctx.fill();
+      lasers.forEach(l => { l.x += Math.cos(l.a) * 8; l.y += Math.sin(l.a) * 8; ctx.fillStyle = '#38bdf8'; ctx.fillRect(l.x - 3, l.y - 3, 6, 6); });
+      ufos.forEach((u, ui) => {
+        u.x -= Math.cos(u.a) * 1.6; u.y -= Math.sin(u.a) * 1.6;
+        ctx.fillStyle = '#22c55e'; ctx.beginPath(); ctx.arc(u.x, u.y, 14, 0, Math.PI * 2); ctx.fill();
+        if (Math.hypot(u.x - cx, u.y - cy) < 30) runner.endGame(false);
+        lasers.forEach((l, li) => {
+          if (Math.hypot(u.x - l.x, u.y - l.y) < 18) { ufos.splice(ui, 1); lasers.splice(li, 1); score += 20; runner.updateScore(score); SoundFX.play('score'); }
+        });
+      });
+    };
+    loop();
+  },
+
+  // --- 30. PENALTY KICK ---
+  penalty_kick({ canvas, ctx, runner }) {
+    let keeperX = canvas.width / 2, ball = null, score = 0, shots = 5;
+    runner.on(canvas, 'pointerdown', e => {
+      if (ball) return;
+      const r = canvas.getBoundingClientRect();
+      ball = { x: canvas.width / 2, y: canvas.height - 50, tx: e.clientX - r.left, ty: e.clientY - r.top };
+      SoundFX.play('jump');
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      keeperX = W / 2 + Math.sin(Date.now() * 0.004) * 95;
+      ctx.fillStyle = '#064e3b'; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.strokeRect(W / 2 - 140, 40, 280, 120);
+      ctx.fillStyle = '#f59e0b'; ctx.fillRect(keeperX - 24, 95, 48, 60);
+      if (ball) {
+        ball.x += (ball.tx - ball.x) * 0.14; ball.y += (ball.ty - ball.y) * 0.14;
+        if (Math.hypot(ball.x - ball.tx, ball.y - ball.ty) < 10) {
+          if (Math.abs(ball.x - keeperX) > 32 && ball.x > W / 2 - 140 && ball.x < W / 2 + 140 && ball.y < 165) {
+            score += 100; runner.updateScore(score); SoundFX.play('score');
+          } else SoundFX.play('hit');
+          ball = null; shots--;
+          if (shots <= 0) return runner.endGame(score >= 200);
+        }
+      }
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(ball ? ball.x : W / 2, ball ? ball.y : H - 50, 13, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 14px Inter'; ctx.fillText(`Shots Left: ${shots}`, 20, 30);
+    };
+    loop();
+  },
+
+  // --- 31. BASKETBALL CHALLENGE ---
+  basketball({ canvas, ctx, runner }) {
+    let ball = null, score = 0;
+    runner.on(canvas, 'pointerdown', e => {
+      if (ball) return;
+      const r = canvas.getBoundingClientRect();
+      const dx = (e.clientX - r.left) - canvas.width / 2;
+      ball = { x: canvas.width / 2, y: canvas.height - 50, vx: dx * 0.045, vy: -14.5 };
+      SoundFX.play('jump');
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height, rimX = W / 2, rimY = 110;
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(rimX - 45, rimY - 45, 90, 55);
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(rimX - 28, rimY); ctx.lineTo(rimX + 28, rimY); ctx.stroke();
+      if (ball) {
+        ball.vy += 0.42; ball.x += ball.vx; ball.y += ball.vy;
+        if (ball.vy > 0 && Math.abs(ball.x - rimX) < 24 && Math.abs(ball.y - rimY) < 12) {
+          score += 50; runner.updateScore(score); SoundFX.play('score'); ball = null;
+        } else if (ball.y > H) ball = null;
+      }
+      ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.arc(ball ? ball.x : W / 2, ball ? ball.y : H - 50, 16, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 32. TABLE TENNIS ---
+  table_tennis({ canvas, ctx, runner }) {
+    let py = canvas.height / 2, ay = canvas.height / 2, ball = { x: canvas.width / 2, y: canvas.height / 2, vx: 5, vy: 3.5 }, score = 0;
+    runner.on(canvas, 'pointermove', e => { const r = canvas.getBoundingClientRect(); py = e.clientY - r.top; });
+    runner.on(window, 'keydown', e => { if (e.key === 'ArrowUp') py -= 32; if (e.key === 'ArrowDown') py += 32; });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      if (runner.paused) return;
+      const W = canvas.width, H = canvas.height;
+      ball.x += ball.vx; ball.y += ball.vy;
+      if (ball.y < 10 || ball.y > H - 10) ball.vy *= -1;
+      ay += (ball.y - ay) * 0.08;
+      if (ball.x < 34 && Math.abs(ball.y - py) < 48) { ball.vx = Math.abs(ball.vx) * 1.04; SoundFX.play('jump'); }
+      if (ball.x > W - 34 && Math.abs(ball.y - ay) < 48) { ball.vx = -Math.abs(ball.vx); SoundFX.play('jump'); }
+      if (ball.x < 0) return runner.endGame(false);
+      if (ball.x > W) { score += 1; runner.updateScore(score); SoundFX.play('score'); ball = { x: W / 2, y: H / 2, vx: -5, vy: 3 }; if (score >= 11) return runner.endGame(true); }
+      ctx.fillStyle = '#0f3443'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(18, py - 42, 12, 84);
+      ctx.fillStyle = '#f43f5e'; ctx.fillRect(W - 30, ay - 42, 12, 84);
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, 9, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 33. FOOTBALL STARS ---
+  football_stars({ canvas, ctx, runner }) {
+    let px = 110, ball = { x: canvas.width / 2, y: 120, vx: -3, vy: 0 }, score = 0;
+    runner.on(window, 'keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') px -= 28;
+      if (e.key === 'ArrowRight' || e.key === 'd') px += 28;
+      if (e.code === 'Space') { ball.vx = 8; ball.vy = -8; SoundFX.play('jump'); }
+    });
+    runner.on(canvas, 'pointerdown', () => { ball.vx = 8; ball.vy = -8; SoundFX.play('jump'); });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      ball.vy += 0.35; ball.x += ball.vx; ball.y += ball.vy;
+      if (ball.y > H - 40) { ball.y = H - 40; ball.vy *= -0.78; }
+      if (ball.x < 16) ball.vx = Math.abs(ball.vx);
+      if (ball.x > W - 16) { score += 1; runner.updateScore(score); SoundFX.play('score'); ball = { x: W / 2, y: 100, vx: -3, vy: 0 }; }
+      if (Math.hypot(ball.x - px, ball.y - (H - 55)) < 36) { ball.vx = 7.5; ball.vy = -8.5; SoundFX.play('jump'); }
+      ctx.fillStyle = '#065f46'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.arc(px, H - 55, 22, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(ball.x, ball.y, 15, 0, Math.PI * 2); ctx.fill();
+    };
+    loop();
+  },
+
+  // --- 34. BOWLING MASTER ---
+  bowling({ canvas, ctx, runner }) {
+    let bx = canvas.width / 2, rolling = false, by = canvas.height - 50, score = 0;
+    const pins = [-45, -15, 15, 45].map(dx => ({ x: canvas.width / 2 + dx, y: 75, up: true }));
+    runner.on(canvas, 'pointerdown', () => { if (!rolling) { rolling = true; SoundFX.play('jump'); } });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      if (!rolling) bx = W / 2 + Math.sin(Date.now() * 0.005) * 85;
+      else by -= 8;
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#78350f'; ctx.fillRect(W / 2 - 90, 0, 180, H);
+      pins.forEach(p => {
+        if (!p.up) return;
+        ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI * 2); ctx.fill();
+        if (rolling && Math.hypot(bx - p.x, by - p.y) < 28) { p.up = false; score += 25; runner.updateScore(score); SoundFX.play('score'); }
+      });
+      ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.arc(bx, by, 16, 0, Math.PI * 2); ctx.fill();
+      if (by < 30) { rolling = false; by = H - 50; pins.forEach(p => p.up = true); }
+    };
+    loop();
+  },
+
+  // --- 35. CITY TRAFFIC SIMULATOR ---
+  city_traffic({ canvas, ctx, runner }) {
+    let greenNS = true, score = 0;
+    const cars = [];
+    runner.addInterval(() => {
+      const ns = Math.random() < 0.5;
+      cars.push({ ns, x: ns ? canvas.width / 2 - 16 : -20, y: ns ? -20 : canvas.height / 2 + 16 });
+    }, 1100);
+    const toggle = () => { greenNS = !greenNS; SoundFX.play('click'); };
+    runner.on(canvas, 'pointerdown', toggle);
+    runner.on(window, 'keydown', e => { if (e.code === 'Space') toggle(); });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#334155'; ctx.fillRect(W / 2 - 40, 0, 80, H); ctx.fillRect(0, H / 2 - 40, W, 80);
+      ctx.fillStyle = greenNS ? '#22c55e' : '#ef4444'; ctx.beginPath(); ctx.arc(W / 2 - 55, H / 2 - 55, 12, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = !greenNS ? '#22c55e' : '#ef4444'; ctx.beginPath(); ctx.arc(W / 2 + 55, H / 2 + 55, 12, 0, Math.PI * 2); ctx.fill();
+      for (let i = cars.length - 1; i >= 0; i--) {
+        const c = cars[i];
+        if (c.ns && (greenNS || Math.abs(c.y - (H / 2 - 65)) > 12)) c.y += 3.5;
+        if (!c.ns && (!greenNS || Math.abs(c.x - (W / 2 - 65)) > 12)) c.x += 3.5;
+        ctx.fillStyle = c.ns ? '#38bdf8' : '#fbbf24'; ctx.fillRect(c.x - 12, c.y - 12, 24, 24);
+        if (c.x > W + 30 || c.y > H + 30) { cars.splice(i, 1); score += 10; runner.updateScore(score); SoundFX.play('score'); }
+      }
+    };
+    loop();
+  },
+
+  // --- 36. AIRPORT MANAGER ---
+  airport_manager({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    let planes = [{ id: 'UZ-101', fuel: 100 }, { id: 'TK-402', fuel: 85 }], score = 0;
+    runner.addInterval(() => {
+      planes.forEach(p => p.fuel -= 10);
+      if (planes.some(p => p.fuel <= 0)) return runner.endGame(false);
+      if (planes.length < 3) planes.push({ id: 'EG-' + (100 + Math.floor(Math.random() * 899)), fuel: 100 });
+      render();
+    }, 1400);
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 max-w-md w-full space-y-3">
+        <div class="text-sm font-bold text-[#66C0F4] text-center">Click incoming flights to clear them for Runway Landing!</div>
+        ${planes.map((p, idx) => `
+          <div class="bg-[#172635] border border-sky-400/25 p-3 rounded-xl flex items-center justify-between">
+            <div><div class="font-bold text-white">✈️ Flight ${p.id}</div><div class="text-xs text-amber-400">Fuel Reserve: ${p.fuel}%</div></div>
+            <button data-i="${idx}" class="land-btn btn-primary px-4 py-2 text-xs">Clear Runway</button>
+          </div>
+        `).join('')}
+      </div>`;
+      domLayer.querySelectorAll('.land-btn').forEach(b => b.onclick = () => {
+        planes.splice(Number(b.dataset.i), 1); score += 50; runner.updateScore(score); SoundFX.play('score'); render();
+      });
+    };
+    render();
+  },
+
+  // --- 37. FARM SIMULATOR ---
+  farm_sim({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const plots = Array(9).fill(0); // 0=empty, 1=planted, 2=ripe
+    let score = 0;
+    runner.addInterval(() => {
+      for (let i = 0; i < 9; i++) if (plots[i] === 1) plots[i] = 2;
+      render();
+    }, 1800);
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 flex flex-col items-center gap-3">
+        <div class="text-xs text-[#66C0F4]">Tap soil to Plant 🌱 → Wait for Wheat 🌾 → Tap to Harvest!</div>
+        <div class="grid grid-cols-3 gap-2.5 bg-[#172635] p-3 rounded-xl">
+          ${plots.map((st, i) => `<button data-i="${i}" class="fm-b w-20 h-20 rounded-xl text-3xl flex items-center justify-center ${st === 2 ? 'bg-amber-600/40 border border-amber-400' : 'bg-[#101923]'}">${st === 0 ? '🟫' : st === 1 ? '🌱' : '🌾'}</button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.fm-b').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (plots[i] === 0) { plots[i] = 1; SoundFX.play('click'); }
+        else if (plots[i] === 2) { plots[i] = 0; score += 30; runner.updateScore(score); SoundFX.play('score'); }
+        render();
+      });
+    };
+    render();
+  },
+
+  // --- 38. RESTAURANT MANAGER ---
+  restaurant_sim({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const menu = ['🍔 Burger', '🍟 Fries', '🥤 Cola'];
+    let order = menu[0], score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 max-w-md w-full text-center space-y-4">
+        <div class="bg-[#172635] p-4 rounded-xl border border-sky-400/25">
+          <div class="text-xs text-[#A7B5C4]">CUSTOMER ORDER</div>
+          <div class="text-3xl font-extrabold text-white mt-1">${order}</div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          ${menu.map(item => `<button data-item="${item}" class="rm-btn btn-secondary py-4 text-base font-bold">${item}</button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.rm-btn').forEach(b => b.onclick = () => {
+        if (b.dataset.item === order) {
+          score += 25; runner.updateScore(score); SoundFX.play('score');
+          order = menu[Math.floor(Math.random() * menu.length)];
+          render();
+        } else SoundFX.play('hit');
+      });
+    };
+    render();
+  },
+
+  // --- 39. CAR MECHANIC SIMULATOR ---
+  car_mechanic({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const tasks = [{ issue: 'Worn Racing Tires', tool: '🛞 Change Tires' }, { issue: 'Low Engine Oil', tool: '🛢️ Refill Oil' }, { issue: 'Battery Drain', tool: '🔋 Swap Battery' }];
+    let cur = tasks[0], score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 max-w-md w-full text-center space-y-4">
+        <div class="bg-[#172635] p-4 rounded-xl border border-sky-400/25">
+          <div class="text-xs text-amber-400 font-bold">DIAGNOSTIC ALERT</div>
+          <div class="text-2xl font-extrabold text-white mt-1">🏎️ ${cur.issue}</div>
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          ${tasks.map(t => `<button data-tool="${t.tool}" class="cm-btn btn-primary py-3 px-2 text-xs font-bold">${t.tool}</button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.cm-btn').forEach(b => b.onclick = () => {
+        if (b.dataset.tool === cur.tool) {
+          score += 40; runner.updateScore(score); SoundFX.play('score');
+          cur = tasks[Math.floor(Math.random() * tasks.length)];
+          render();
+        } else SoundFX.play('hit');
+      });
+    };
+    render();
+  },
+
+  // --- 40. CHESS ---
+  chess({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const board = [
+      'r','n','b','q','k','b','n','r',
+      'p','p','p','p','p','p','p','p',
+      '','','','','','','','', '','','','','','','','',
+      '','','','','','','','', '','','','','','','','',
+      'P','P','P','P','P','P','P','P',
+      'R','N','B','Q','K','B','N','R'
+    ];
+    const glyphs = { r:'♜', n:'♞', b:'♝', q:'♛', k:'♚', p:'♟', R:'♖', N:'♘', B:'♗', Q:'♕', K:'♔', P:'♙' };
+    let sel = -1, score = 0;
+    const isWhite = p => p && p === p.toUpperCase();
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-2">
+        <div class="grid grid-cols-8 border-2 border-sky-400/30 rounded-lg overflow-hidden">
+          ${board.map((p, i) => {
+            const dark = (Math.floor(i / 8) + (i % 8)) % 2 === 1;
+            return `<button data-i="${i}" class="ch-sq w-9 h-9 sm:w-11 sm:h-11 text-2xl flex items-center justify-center ${sel === i ? 'bg-[#1A9FFF]' : dark ? 'bg-[#1B2D40]' : 'bg-[#2c4663]'} ${isWhite(p) ? 'text-white' : 'text-amber-300'}">${glyphs[p] || ''}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.ch-sq').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (sel === -1) {
+          if (isWhite(board[i])) { sel = i; render(); }
+        } else {
+          if (i !== sel && !isWhite(board[i])) {
+            if (board[i]) { score += 50; runner.updateScore(score); SoundFX.play('score'); }
+            if (board[i] === 'k') return runner.endGame(true);
+            board[i] = board[sel]; board[sel] = ''; sel = -1;
+            const blacks = board.map((p, idx) => p && !isWhite(p) ? idx : -1).filter(x => x !== -1);
+            if (blacks.length) {
+              const from = blacks[Math.floor(Math.random() * blacks.length)];
+              const to = Math.min(63, from + 8);
+              if (!board[to] || isWhite(board[to])) { board[to] = board[from]; board[from] = ''; }
+            }
+          } else sel = -1;
+          render();
+        }
+      });
+    };
+    render();
+  },
+
+  // --- 41. CHECKERS ---
+  checkers({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const board = Array(64).fill('');
+    for (let i = 0; i < 24; i++) if ((Math.floor(i / 8) + i) % 2 === 1) board[i] = 'b';
+    for (let i = 40; i < 64; i++) if ((Math.floor(i / 8) + i) % 2 === 1) board[i] = 'w';
+    let sel = -1, score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-2">
+        <div class="grid grid-cols-8 border-2 border-sky-400/30 rounded-lg overflow-hidden">
+          ${board.map((p, i) => {
+            const dark = (Math.floor(i / 8) + (i % 8)) % 2 === 1;
+            return `<button data-i="${i}" class="ck-sq w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center ${sel === i ? 'bg-[#1A9FFF]' : dark ? 'bg-[#1B2D40]' : 'bg-[#2c4663]'}">${p === 'w' ? '🔵' : p === 'b' ? '🔴' : ''}</button>`;
+          }).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.ck-sq').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (board[i] === 'w') { sel = i; render(); }
+        else if (sel !== -1 && !board[i]) {
+          const mid = (sel + i) / 2;
+          if (Number.isInteger(mid) && board[mid] === 'b') { board[mid] = ''; score += 40; runner.updateScore(score); SoundFX.play('score'); }
+          board[i] = 'w'; board[sel] = ''; sel = -1;
+          const bIdx = board.indexOf('b');
+          if (bIdx === -1) return runner.endGame(true);
+          if (bIdx + 7 < 64 && !board[bIdx + 7]) { board[bIdx + 7] = 'b'; board[bIdx] = ''; }
+          render();
+        }
+      });
+    };
+    render();
+  },
+
+  // --- 42. TOWER DEFENSE ---
+  tower_defense({ canvas, ctx, runner }) {
+    const towers = [], enemies = [];
+    let gold = 100, score = 0;
+    runner.addInterval(() => enemies.push({ x: 0, y: canvas.height / 2, hp: 40 }), 1200);
+    runner.addInterval(() => {
+      towers.forEach(t => {
+        const target = enemies.find(e => Math.hypot(e.x - t.x, e.y - t.y) < 120);
+        if (target) target.hp -= 12;
+      });
+    }, 350);
+    runner.on(canvas, 'pointerdown', e => {
+      if (gold < 40) return;
+      const r = canvas.getBoundingClientRect();
+      towers.push({ x: e.clientX - r.left, y: e.clientY - r.top });
+      gold -= 40; SoundFX.play('click');
+    });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1e293b'; ctx.fillRect(0, H / 2 - 22, W, 44);
+      towers.forEach(t => { ctx.fillStyle = '#1A9FFF'; ctx.beginPath(); ctx.arc(t.x, t.y, 14, 0, Math.PI * 2); ctx.fill(); });
+      for (let i = enemies.length - 1; i >= 0; i--) {
+        const e = enemies[i]; e.x += 1.6;
+        ctx.fillStyle = '#f43f5e'; ctx.beginPath(); ctx.arc(e.x, e.y, 12, 0, Math.PI * 2); ctx.fill();
+        if (e.hp <= 0) { enemies.splice(i, 1); gold += 20; score += 30; runner.updateScore(score); SoundFX.play('score'); }
+        else if (e.x > W) return runner.endGame(false);
+      }
+      ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 13px Inter'; ctx.fillText(`Gold: ${gold} (Tap to build turret - 40g)`, 16, 26);
+    };
+    loop();
+  },
+
+  // --- 43. TIC TAC TOE ---
+  tic_tac_toe({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const cells = Array(9).fill('');
+    const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    const check = sym => wins.some(w => w.every(i => cells[i] === sym));
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4">
+        <div class="grid grid-cols-3 gap-2.5 bg-[#172635] p-3 rounded-2xl">
+          ${cells.map((v, i) => `<button data-i="${i}" class="ttt-c w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-[#101923] text-4xl font-extrabold ${v === 'X' ? 'text-[#1A9FFF]' : 'text-rose-400'}">${v}</button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.ttt-c').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        if (cells[i]) return;
+        cells[i] = 'X'; SoundFX.play('click');
+        if (check('X')) { runner.updateScore(100); return runner.endGame(true); }
+        const empty = cells.map((v, idx) => v === '' ? idx : -1).filter(x => x !== -1);
+        if (!empty.length) return runner.endGame(false);
+        cells[empty[Math.floor(Math.random() * empty.length)]] = 'O';
+        if (check('O')) return runner.endGame(false);
+        render();
+      });
+    };
+    render();
+  },
+
+  // --- 44. CONNECT FOUR ---
+  connect_four({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const cols = 7, rows = 6, grid = Array(cols * rows).fill(0);
+    const drop = (c, player) => {
+      for (let r = rows - 1; r >= 0; r--) {
+        if (!grid[r * cols + c]) { grid[r * cols + c] = player; return true; }
+      }
+      return false;
+    };
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3">
+        <div class="grid grid-cols-7 gap-1.5 bg-[#172635] p-3 rounded-2xl">
+          ${grid.map((v, i) => `<button data-c="${i % cols}" class="c4-c w-9 h-9 sm:w-11 sm:h-11 rounded-full ${v === 1 ? 'bg-[#1A9FFF]' : v === 2 ? 'bg-amber-400' : 'bg-[#101923]'}"></button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.c4-c').forEach(b => b.onclick = () => {
+        const c = Number(b.dataset.c);
+        if (!drop(c, 1)) return;
+        runner.updateScore(runner.score + 15); SoundFX.play('score');
+        drop(Math.floor(Math.random() * cols), 2);
+        if (!grid.includes(0)) return runner.endGame(true);
+        render();
+      });
+    };
+    render();
+  },
+
+  // --- 45. FRUIT SLICE ---
+  fruit_slice({ canvas, ctx, runner }) {
+    const items = [];
+    let score = 0;
+    runner.addInterval(() => {
+      items.push({ x: 50 + Math.random() * (canvas.width - 100), y: canvas.height, vx: (Math.random() - 0.5) * 4, vy: -12.5, bomb: Math.random() < 0.2, icon: ['🍉','🍊','🍎','🍍'][Math.floor(Math.random() * 4)] });
+    }, 800);
+    const slice = (x, y) => {
+      for (let i = items.length - 1; i >= 0; i--) {
+        if (Math.hypot(items[i].x - x, items[i].y - y) < 34) {
+          if (items[i].bomb) return runner.endGame(false);
+          items.splice(i, 1); score += 20; runner.updateScore(score); SoundFX.play('score');
+        }
+      }
+    };
+    runner.on(canvas, 'pointermove', e => { if (e.buttons) { const r = canvas.getBoundingClientRect(); slice(e.clientX - r.left, e.clientY - r.top); } });
+    runner.on(canvas, 'pointerdown', e => { const r = canvas.getBoundingClientRect(); slice(e.clientX - r.left, e.clientY - r.top); });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = '32px Arial'; ctx.textAlign = 'center';
+      items.forEach(it => {
+        it.vy += 0.35; it.x += it.vx; it.y += it.vy;
+        ctx.fillText(it.bomb ? '💣' : it.icon, it.x, it.y);
+      });
+    };
+    loop();
+  },
+
+  // --- 46. ENDLESS RUNNER ---
+  endless_runner({ canvas, ctx, runner }) {
+    let py = 200, vy = 0, jumps = 0, score = 0;
+    const obs = [];
+    runner.addInterval(() => obs.push({ x: canvas.width + 20, w: 24, h: 36 }), 1200);
+    const jump = () => { if (jumps < 2) { vy = -11; jumps++; SoundFX.play('jump'); } };
+    runner.on(window, 'keydown', e => { if (e.code === 'Space' || e.key === 'ArrowUp') jump(); });
+    runner.on(canvas, 'pointerdown', jump);
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height, ground = H - 70;
+      vy += 0.55; py += vy;
+      if (py >= ground - 32) { py = ground - 32; vy = 0; jumps = 0; }
+      ctx.fillStyle = '#0b121a'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = '#1A9FFF'; ctx.fillRect(0, ground, W, 6);
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(75, py, 28, 32);
+      score += 1; runner.updateScore(score);
+      obs.forEach(o => {
+        o.x -= 6.5;
+        ctx.fillStyle = '#f43f5e'; ctx.fillRect(o.x, ground - o.h, o.w, o.h);
+        if (103 > o.x && 75 < o.x + o.w && py + 32 > ground - o.h) runner.endGame(false);
+      });
+    };
+    loop();
+  },
+
+  // --- 47. FISHING MASTER ---
+  fishing_master({ canvas, ctx, runner }) {
+    let hookY = 60, hookX = canvas.width / 2, dir = 3, score = 0;
+    const fishes = Array.from({ length: 6 }, (_, i) => ({ x: 50 + i * 65, y: 150 + i * 42, vx: (i % 2 ? 1 : -1) * 2.5 }));
+    runner.on(canvas, 'pointerdown', () => { dir = 5; SoundFX.play('jump'); });
+    const loop = () => {
+      if (!runner.running) return;
+      runner.rafId = requestAnimationFrame(loop);
+      const W = canvas.width, H = canvas.height;
+      hookY += dir;
+      if (hookY > H - 40) dir = -4;
+      if (hookY < 55) { hookY = 55; dir = 0; }
+      ctx.fillStyle = '#082f49'; ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#ffffff'; ctx.beginPath(); ctx.moveTo(hookX, 0); ctx.lineTo(hookX, hookY); ctx.stroke();
+      ctx.fillStyle = '#fbbf24'; ctx.beginPath(); ctx.arc(hookX, hookY, 8, 0, Math.PI * 2); ctx.fill();
+      fishes.forEach(f => {
+        f.x += f.vx; if (f.x < 20 || f.x > W - 20) f.vx *= -1;
+        ctx.font = '24px Arial'; ctx.fillText('🐠', f.x, f.y);
+        if (Math.hypot(f.x - hookX, f.y - hookY) < 26) {
+          f.x = 30; score += 40; runner.updateScore(score); SoundFX.play('score');
+        }
+      });
+    };
+    loop();
+  },
+
+  // --- 48. BUBBLE POP ---
+  bubble_pop({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const colors = ['bg-sky-500', 'bg-rose-500', 'bg-amber-400', 'bg-emerald-500'];
+    const grid = Array.from({ length: 36 }, () => colors[Math.floor(Math.random() * colors.length)]);
+    let score = 0;
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-3">
+        <div class="grid grid-cols-6 gap-2 bg-[#172635] p-3 rounded-2xl">
+          ${grid.map((c, i) => `<button data-i="${i}" class="bp-b w-11 h-11 rounded-full ${c} transition transform hover:scale-110"></button>`).join('')}
+        </div>
+      </div>`;
+      domLayer.querySelectorAll('.bp-b').forEach(b => b.onclick = () => {
+        const i = Number(b.dataset.i);
+        grid[i] = colors[Math.floor(Math.random() * colors.length)];
+        score += 10; runner.updateScore(score); SoundFX.play('score'); render();
+      });
+    };
+    render();
+  },
+
+  // --- 49. IDLE CLICKER ---
+  idle_clicker({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    let energy = 0, perClick = 1, autoRate = 0;
+    runner.addInterval(() => {
+      if (autoRate > 0) { energy += autoRate; runner.updateScore(energy); render(); }
+    }, 1000);
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 max-w-sm w-full text-center space-y-4">
+        <button id="ic-core" class="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-[#1A9FFF] to-[#0284c7] shadow-lg shadow-sky-500/30 text-4xl font-extrabold text-white active:scale-95 transition">⚡</button>
+        <div class="text-sm text-[#66C0F4]">+${perClick} / tap • +${autoRate} / sec</div>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="ic-up1" class="btn-secondary p-2.5 text-xs">Upgrade Tap (Cost: ${perClick * 15})</button>
+          <button id="ic-up2" class="btn-secondary p-2.5 text-xs">Auto Drone (Cost: ${(autoRate + 1) * 25})</button>
+        </div>
+      </div>`;
+      domLayer.querySelector('#ic-core').onclick = () => { energy += perClick; runner.updateScore(energy); SoundFX.play('score'); render(); };
+      domLayer.querySelector('#ic-up1').onclick = () => { const c = perClick * 15; if (energy >= c) { energy -= c; perClick++; runner.updateScore(energy); render(); } };
+      domLayer.querySelector('#ic-up2').onclick = () => { const c = (autoRate + 1) * 25; if (energy >= c) { energy -= c; autoRate += 2; runner.updateScore(energy); render(); } };
+    };
+    render();
+  },
+
+  // --- 50. COLOR MATCH ---
+  color_match({ canvas, domLayer, runner }) {
+    canvas.style.display = 'none'; domLayer.style.display = 'flex';
+    const items = [{ name: 'BLUE', css: 'text-sky-400' }, { name: 'RED', css: 'text-rose-500' }, { name: 'GREEN', css: 'text-emerald-400' }, { name: 'YELLOW', css: 'text-amber-400' }];
+    let word = items[0], ink = items[0], score = 0;
+    const next = () => {
+      word = items[Math.floor(Math.random() * items.length)];
+      ink = Math.random() < 0.5 ? word : items[Math.floor(Math.random() * items.length)];
+      render();
+    };
+    const answer = yes => {
+      if ((word.name === ink.name) === yes) { score += 20; runner.updateScore(score); SoundFX.play('score'); next(); }
+      else runner.endGame(false);
+    };
+    const render = () => {
+      domLayer.innerHTML = `<div class="m-auto p-4 max-w-sm w-full text-center space-y-5">
+        <div class="text-xs text-[#A7B5C4]">Does the WORD meaning match the INK color?</div>
+        <div class="bg-[#172635] py-8 rounded-2xl border border-sky-400/20 text-5xl font-black ${ink.css}">${word.name}</div>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="cm-no" class="btn-secondary py-3 font-bold text-rose-400">✕ NO MATCH</button>
+          <button id="cm-yes" class="btn-primary py-3 font-bold">✓ MATCH</button>
+        </div>
+      </div>`;
+      domLayer.querySelector('#cm-no').onclick = () => answer(false);
+      domLayer.querySelector('#cm-yes').onclick = () => answer(true);
+    };
+    next();
+  }
+};
+
+/**
+ * ============================================================================
+ * 8. UI ROUTER, COMPONENT RENDERERS, SEARCH & MULTILINGUAL CONTROLLER
+ * ============================================================================
+ */
+const App = {
+  route: 'home',
+  routeParams: {},
+  filterState: {
+    category: 'all',
+    sort: 'popular',
+    search: ''
+  },
+
+  init() {
+    Store.load();
+    this.applyTheme(Store.state.theme);
+    document.getElementById('language-selector').value = Store.state.lang;
+    this.updateStaticI18n();
+    this.updateFavBadges();
+    document.getElementById('header-nickname').textContent = Store.state.nickname;
+    this.bindSearchEvents();
+    this.navigate('home');
+  },
+
+  t(key) {
+    const lang = Store.state.lang || 'en';
+    return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+  },
+
+  setLanguage(lang) {
+    Store.state.lang = lang;
+    Store.save();
+    this.updateStaticI18n();
+    this.renderCurrentRoute();
+    this.toast(`Language: ${lang.toUpperCase()}`);
+  },
+
+  applyTheme(theme) {
+    Store.state.theme = theme;
+    document.body.classList.toggle('theme-midnight', theme === 'midnight');
+    Store.save();
+  },
+
+  updateStaticI18n() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      el.textContent = this.t(el.getAttribute('data-i18n'));
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      el.placeholder = this.t(el.getAttribute('data-i18n-placeholder'));
+    });
+  },
+
+  updateFavBadges() {
+    const count = Store.state.favorites.length;
+    const b1 = document.getElementById('nav-fav-count');
+    const b2 = document.getElementById('mobile-fav-count');
+    if (b1) b1.textContent = count;
+    if (b2) b2.textContent = count;
+  },
+
+  toggleMobileMenu(force) {
+    const drawer = document.getElementById('mobile-nav-drawer');
+    if (!drawer) return;
+    if (typeof force === 'boolean') drawer.classList.toggle('hidden', !force);
+    else drawer.classList.toggle('hidden');
+  },
+
+  toast(msg) {
+    const container = document.getElementById('toast-container');
+    const el = document.createElement('div');
+    el.className = 'bg-[#172635] border border-[#1A9FFF]/50 text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-xl shadow-xl transition-opacity duration-300';
+    el.textContent = msg;
+    container.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 2200);
+  },
+
+  showDocsModal() { document.getElementById('docs-modal').classList.remove('hidden'); },
+  closeDocsModal() { document.getElementById('docs-modal').classList.add('hidden'); },
+
+  bindSearchEvents() {
+    const input = document.getElementById('global-search-input');
+    const clearBtn = document.getElementById('global-search-clear');
+    const sugBox = document.getElementById('search-suggestions');
+
+    input.addEventListener('input', e => {
+      const q = e.target.value.trim();
+      this.filterState.search = q;
+      clearBtn.classList.toggle('hidden', q.length === 0);
+
+      if (q.length > 0) {
+        const matches = GAMES_DB.filter(g =>
+          g.title.toLowerCase().includes(q.toLowerCase()) ||
+          g.category.toLowerCase().includes(q.toLowerCase()) ||
+          g.desc[Store.state.lang].toLowerCase().includes(q.toLowerCase())
+        ).slice(0, 6);
+
+        if (matches.length) {
+          sugBox.innerHTML = matches.map(g => `
+            <button onclick="App.openGame(${g.id}); document.getElementById('search-suggestions').classList.add('hidden');" class="w-full px-3 py-2 text-left hover:bg-white/10 flex items-center gap-2.5 border-b border-sky-400/10 last:border-0">
+              <img src="${getGameThumbnailURI(g)}" class="w-11 h-7 rounded object-cover" alt="${g.title}"/>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs font-bold text-white truncate">${g.title}</div>
+                <div class="text-[11px] text-[#66C0F4] uppercase">${this.t('cat_' + g.category)}</div>
+              </div>
+            </button>
+          `).join('');
+          sugBox.classList.remove('hidden');
+        } else {
+          sugBox.classList.add('hidden');
+        }
+      } else {
+        sugBox.classList.add('hidden');
+      }
+
+      if (this.route === 'discover') this.renderDiscover();
+    });
+
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        sugBox.classList.add('hidden');
+        this.navigate('discover');
+      }
+    });
+
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#global-search-input') && !e.target.closest('#search-suggestions')) {
+        sugBox.classList.add('hidden');
+      }
+    });
+  },
+
+  clearSearch() {
+    const input = document.getElementById('global-search-input');
+    input.value = '';
+    this.filterState.search = '';
+    document.getElementById('global-search-clear').classList.add('hidden');
+    document.getElementById('search-suggestions').classList.add('hidden');
+    if (this.route === 'discover') this.renderDiscover();
+  },
+
+  navigate(route, params = {}) {
+    GameRunner.cleanup();
+    this.route = route;
+    this.routeParams = params;
+    if (params.category) this.filterState.category = params.category;
+    if (params.sort) this.filterState.sort = params.sort;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.renderCurrentRoute();
+  },
+
+  openGame(gameId) {
+    const game = GAMES_DB.find(g => g.id === gameId);
+    if (!game) return;
+    this.navigate('game', { gameId });
+  },
+
+  handleFavoriteClick(e, gameId) {
+    e.stopPropagation();
+    const added = Store.toggleFavorite(gameId);
+    this.updateFavBadges();
+    SoundFX.play('click');
+    this.toast(added ? `❤️ ${this.t('favorited')}` : this.t('add_favorite'));
+    this.renderCurrentRoute();
+  },
+
+  renderGameCard(game, compact = false) {
+    const isFav = Store.isFavorite(game.id);
+    const lang = Store.state.lang || 'en';
+    const best = Store.state.bestScores[game.id];
+    return `
+      <div onclick="App.openGame(${game.id})" class="steam-card rounded-xl overflow-hidden cursor-pointer flex flex-col justify-between ${compact ? 'w-64 sm:w-72' : 'w-full'} group">
+        <div>
+          <div class="relative aspect-video overflow-hidden bg-[#101923]">
+            <img src="${getGameThumbnailURI(game)}" loading="lazy" alt="${game.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+            <button onclick="App.handleFavoriteClick(event, ${game.id})" aria-label="Favorite" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-lg bg-[#101923]/80 backdrop-blur border border-white/15 flex items-center justify-center hover:scale-110 transition">
+              <span class="text-sm">${isFav ? '❤️' : '🤍'}</span>
+            </button>
+            ${game.isNew ? `<span class="absolute top-2.5 left-2.5 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-[#1A9FFF] text-white shadow">NEW</span>` : ''}
+          </div>
+          <div class="p-3.5 space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#66C0F4]">${this.t('cat_' + game.category)}</span>
+              <span class="text-xs font-semibold text-amber-400">★ ${game.rating.toFixed(1)}</span>
+            </div>
+            <h3 class="font-bold text-white text-base truncate group-hover:text-[#66C0F4] transition">${game.title}</h3>
+            <p class="text-xs text-[#A7B5C4] line-clamp-2 leading-relaxed">${game.desc[lang]}</p>
+          </div>
+        </div>
+        <div class="px-3.5 pb-3.5 pt-1 flex items-center justify-between gap-2">
+          ${best ? `<span class="text-[11px] text-[#66C0F4] font-semibold">${this.t('best_label')}: ${best}</span>` : `<span class="text-[11px] text-[#A7B5C4]">HTML5</span>`}
+          <button class="btn-primary px-3.5 py-1.5 text-xs">${this.t('play_now')}</button>
+        </div>
+      </div>
+    `;
+  },
+
+  renderCurrentRoute() {
+    if (this.route === 'home') this.renderHome();
+    else if (this.route === 'discover') this.renderDiscover();
+    else if (this.route === 'game') this.renderGamePage(this.routeParams.gameId);
+    else if (this.route === 'favorites') this.renderFavorites();
+    else if (this.route === 'profile') this.renderProfile();
+  },
+
+  // === VIEW 1: HOMEPAGE ===
+  renderHome() {
+    const root = document.getElementById('app-root');
+    const lang = Store.state.lang || 'en';
+    const featured = GAMES_DB[0];
+    const trending = [...GAMES_DB].sort((a, b) => b.popularity - a.popularity).slice(0, 10);
+    const popular = [...GAMES_DB].sort((a, b) => b.rating - a.rating).slice(0, 8);
+    const newReleases = GAMES_DB.filter(g => g.isNew).slice(0, 8);
+
+    const recentGames = Store.state.recentlyPlayed.map(id => GAMES_DB.find(g => g.id === id)).filter(Boolean);
+    const recentCats = [...new Set(recentGames.map(g => g.category))];
+    const recommended = GAMES_DB.filter(g => recentCats.includes(g.category) && !Store.state.recentlyPlayed.includes(g.id)).slice(0, 4);
+    const recList = recommended.length ? recommended : GAMES_DB.slice(10, 14);
+    const favGames = Store.state.favorites.map(id => GAMES_DB.find(g => g.id === id)).filter(Boolean).slice(0, 4);
+
+    const categories = ['racing', 'action', 'arcade', 'puzzle', 'sports', 'simulation', 'strategy', 'casual'];
+
+    root.innerHTML = `
+      <div class="space-y-10 animate-view">
+        <!-- A. HERO FEATURED BANNER -->
+        <section class="relative rounded-2xl overflow-hidden steam-surface border border-sky-400/25 shadow-2xl">
+          <div class="grid grid-cols-1 lg:grid-cols-12 items-center">
+            <div class="lg:col-span-7 relative aspect-video lg:aspect-auto lg:h-[360px] overflow-hidden">
+              <img src="${getGameThumbnailURI(featured)}" alt="${featured.title}" class="w-full h-full object-cover"/>
+              <div class="absolute inset-0 bg-gradient-to-t lg:bg-gradient-to-r from-[#172635] via-[#172635]/40 to-transparent"></div>
+            </div>
+            <div class="lg:col-span-5 p-6 sm:p-8 space-y-4">
+              <span class="inline-block badge-chip text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full">${this.t('featured_badge')}</span>
+              <h1 class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">${featured.title}</h1>
+              <p class="text-sm sm:text-base text-[#A7B5C4] leading-relaxed">${featured.desc[lang]}</p>
+              <div class="flex flex-wrap items-center gap-3 pt-2">
+                <button onclick="App.openGame(${featured.id})" class="btn-primary px-6 py-3 text-sm sm:text-base flex items-center gap-2">
+                  <span>▶</span> <span>${this.t('play_now')}</span>
+                </button>
+                <button onclick="App.handleFavoriteClick(event, ${featured.id})" class="btn-secondary px-4 py-3 text-sm font-medium">
+                  ${Store.isFavorite(featured.id) ? '❤️ ' + this.t('favorited') : '🤍 ' + this.t('add_favorite')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- F. CATEGORIES STRIP -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">${this.t('nav_categories')}</h2>
+            <button onclick="App.navigate('discover')" class="text-xs sm:text-sm text-[#66C0F4] hover:underline font-medium">${this.t('view_all')} (50) →</button>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+            ${categories.map(cat => `
+              <button onclick="App.navigate('discover', {category: '${cat}'})" class="steam-card rounded-xl p-3.5 text-center space-y-1.5">
+                <div class="text-2xl">${CategoryThemes[cat].icon}</div>
+                <div class="text-xs font-bold text-white">${this.t('cat_' + cat)}</div>
+                <div class="text-[11px] text-[#A7B5C4]">${GAMES_DB.filter(g => g.category === cat).length} games</div>
+              </button>
+            `).join('')}
+          </div>
+        </section>
+
+        <!-- B. TRENDING GAMES (Horizontal Scroll) -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">🔥 ${this.t('trending_title')}</h2>
+            <button onclick="App.navigate('discover', {sort: 'popular'})" class="text-xs sm:text-sm text-[#66C0F4] hover:underline font-medium">${this.t('view_all')} →</button>
+          </div>
+          <div class="horizontal-scroll">
+            ${trending.map(g => this.renderGameCard(g, true)).join('')}
+          </div>
+        </section>
+
+        <!-- C. POPULAR GAMES -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">⭐ ${this.t('popular_title')}</h2>
+            <button onclick="App.navigate('discover', {sort: 'rating'})" class="text-xs sm:text-sm text-[#66C0F4] hover:underline font-medium">${this.t('view_all')} →</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${popular.map(g => this.renderGameCard(g)).join('')}
+          </div>
+        </section>
+
+        <!-- D. NEW RELEASES -->
+        <section class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-bold text-white">🆕 ${this.t('new_releases_title')}</h2>
+            <button onclick="App.navigate('discover', {sort: 'newest'})" class="text-xs sm:text-sm text-[#66C0F4] hover:underline font-medium">${this.t('view_all')} →</button>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${newReleases.map(g => this.renderGameCard(g)).join('')}
+          </div>
+        </section>
+
+        <!-- E. RECOMMENDED FOR YOU -->
+        <section class="space-y-4">
+          <h2 class="text-xl font-bold text-white">🎯 ${this.t('recommended_title')}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${recList.map(g => this.renderGameCard(g)).join('')}
+          </div>
+        </section>
+
+        <!-- G & H. RECENTLY PLAYED & FAVORITES -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <section class="space-y-4">
+            <h2 class="text-lg font-bold text-white">🕒 ${this.t('recently_played_title')}</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${recentGames.slice(0, 2).map(g => this.renderGameCard(g)).join('')}
+            </div>
+          </section>
+          <section class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-bold text-white">❤️ ${this.t('favorites_title')}</h2>
+              <button onclick="App.navigate('favorites')" class="text-xs text-[#66C0F4] hover:underline">${this.t('view_all')} →</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              ${favGames.slice(0, 2).map(g => this.renderGameCard(g)).join('')}
+            </div>
+          </section>
+        </div>
+      </div>
+    `;
+  },
+
+  // === VIEW 2: DISCOVER ALL 50 GAMES ===
+  renderDiscover() {
+    const root = document.getElementById('app-root');
+    const lang = Store.state.lang || 'en';
+    const { category, sort, search } = this.filterState;
+
+    let list = [...GAMES_DB];
+    if (category !== 'all') list = list.filter(g => g.category === category);
+    if (search) {
+      const q = search.toLowerCase();
+      list = list.filter(g => g.title.toLowerCase().includes(q) || g.category.includes(q) || g.desc[lang].toLowerCase().includes(q));
+    }
+
+    if (sort === 'popular') list.sort((a, b) => b.popularity - a.popularity);
+    else if (sort === 'rating') list.sort((a, b) => b.rating - a.rating);
+    else if (sort === 'alpha') list.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === 'newest') list.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0) || b.id - a.id);
+
+    const categories = ['all', 'racing', 'arcade', 'puzzle', 'action', 'sports', 'simulation', 'strategy', 'casual'];
+
+    root.innerHTML = `
+      <div class="space-y-6 animate-view">
+        <div class="steam-surface rounded-2xl p-5 space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h1 class="text-2xl font-extrabold text-white">${this.t('nav_discover')}</h1>
+              <p class="text-xs sm:text-sm text-[#A7B5C4]">${list.length} ${this.t('games_found')}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <select onchange="App.filterState.sort = this.value; App.renderDiscover();" class="bg-[#101923] border border-sky-400/25 rounded-lg px-3 py-2 text-xs sm:text-sm text-white outline-none">
+                <option value="popular" ${sort === 'popular' ? 'selected' : ''}>${this.t('sort_popular')}</option>
+                <option value="rating" ${sort === 'rating' ? 'selected' : ''}>${this.t('sort_rating')}</option>
+                <option value="alpha" ${sort === 'alpha' ? 'selected' : ''}>${this.t('sort_alpha')}</option>
+                <option value="newest" ${sort === 'newest' ? 'selected' : ''}>${this.t('sort_newest')}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div class="flex flex-wrap gap-2">
+            ${categories.map(cat => `
+              <button onclick="App.filterState.category = '${cat}'; App.renderDiscover();" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition ${category === cat ? 'bg-[#1A9FFF] text-white' : 'bg-[#101923] text-[#A7B5C4] hover:text-white'}">
+                ${this.t('cat_' + cat)}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        ${list.length ? `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${list.map(g => this.renderGameCard(g)).join('')}
+          </div>
+        ` : `
+          <div class="steam-surface rounded-2xl p-12 text-center space-y-4">
+            <div class="text-4xl">🔍</div>
+            <p class="text-[#A7B5C4]">${this.t('empty_search')}</p>
+            <button onclick="App.filterState.category='all'; App.clearSearch(); App.renderDiscover();" class="btn-primary px-5 py-2 text-sm">${this.t('reset_filters')}</button>
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  // === VIEW 3: DEDICATED PLAYABLE GAME PAGE ===
+  renderGamePage(gameId) {
+    const game = GAMES_DB.find(g => g.id === gameId) || GAMES_DB[0];
+    const lang = Store.state.lang || 'en';
+    const isFav = Store.isFavorite(game.id);
+    const best = Store.state.bestScores[game.id] || 0;
+    const related = GAMES_DB.filter(g => g.category === game.category && g.id !== game.id).slice(0, 4);
+
+    const root = document.getElementById('app-root');
+    root.innerHTML = `
+      <div class="space-y-6 animate-view">
+        <!-- Game Header Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <button onclick="App.navigate('discover')" class="btn-secondary px-3 py-2 text-xs font-semibold">← ${this.t('nav_discover')}</button>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-white">${game.title}</h1>
+                <span class="badge-chip text-[11px] font-bold uppercase px-2.5 py-0.5 rounded">${this.t('cat_' + game.category)}</span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="App.handleFavoriteClick(event, ${game.id})" class="btn-secondary px-3.5 py-2 text-xs font-semibold">
+              ${isFav ? '❤️ ' + this.t('favorited') : '🤍 ' + this.t('add_favorite')}
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Stage Wrapper -->
+        <div id="game-stage-wrapper" class="shadow-2xl">
+          <!-- Live Score HUD -->
+          <div class="absolute top-3 left-3 right-3 z-20 flex items-center justify-between pointer-events-none">
+            <div class="bg-[#101923]/85 backdrop-blur border border-sky-400/25 px-3.5 py-1.5 rounded-xl flex items-center gap-4 text-xs sm:text-sm font-bold">
+              <span>${this.t('score_label')}: <strong id="hud-score" class="text-[#1A9FFF]">0</strong></span>
+              <span class="text-[#A7B5C4]">${this.t('best_label')}: <strong id="hud-best" class="text-amber-400">${best}</strong></span>
+            </div>
+          </div>
+
+          <canvas id="game-canvas"></canvas>
+          <div id="game-dom-layer"></div>
+
+          <!-- Pause Banner -->
+          <div id="stage-pause-banner" class="hidden absolute inset-0 z-20 bg-black/65 backdrop-blur-sm flex items-center justify-center">
+            <div class="text-center space-y-3">
+              <div class="text-3xl font-extrabold text-white tracking-wider">PAUSED</div>
+              <button onclick="GameRunner.togglePause()" class="btn-primary px-6 py-2.5 text-sm">${this.t('btn_resume')}</button>
+            </div>
+          </div>
+
+          <!-- Start / Game Over Overlay -->
+          <div id="stage-overlay" class="absolute inset-0 z-30 bg-[#101923]/90 backdrop-blur-md flex items-center justify-center p-4">
+            <div class="text-center max-w-md space-y-4">
+              <img src="${getGameThumbnailURI(game)}" alt="${game.title}" class="w-48 h-28 mx-auto rounded-xl object-cover border border-sky-400/30 shadow-lg"/>
+              <h2 class="text-2xl font-extrabold text-white">${game.title}</h2>
+              <p class="text-xs sm:text-sm text-[#A7B5C4]">${game.controls[lang]}</p>
+              <button id="btn-launch-game" class="btn-primary px-8 py-3.5 text-base font-extrabold tracking-wide shadow-xl">
+                ▶ ${this.t('btn_start')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage Control Toolbar -->
+        <div class="steam-surface rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="GameRunner.launch(GAMES_DB.find(g => g.id === ${game.id}))" class="btn-secondary px-3.5 py-2 text-xs font-semibold">↻ ${this.t('btn_restart')}</button>
+            <button id="btn-pause-toggle" onclick="GameRunner.togglePause()" class="btn-secondary px-3.5 py-2 text-xs font-semibold">${this.t('btn_pause')}</button>
+            <button id="btn-sound-toggle" onclick="SoundFX.enabled = !SoundFX.enabled; this.textContent = SoundFX.enabled ? App.t('btn_sound_on') : App.t('btn_sound_off');" class="btn-secondary px-3.5 py-2 text-xs font-semibold">
+              ${SoundFX.enabled ? this.t('btn_sound_on') : this.t('btn_sound_off')}
+            </button>
+          </div>
+          <button onclick="const el = document.getElementById('game-stage-wrapper'); if (!document.fullscreenElement) el.requestFullscreen().catch(()=>{}); else document.exitFullscreen();" class="btn-primary px-4 py-2 text-xs font-semibold">
+            ⛶ ${this.t('btn_fullscreen')}
+          </button>
+        </div>
+
+        <!-- Instructions & Description Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="steam-surface rounded-xl p-5 space-y-2">
+            <h3 class="font-bold text-white text-base">🎮 ${this.t('how_to_play')}</h3>
+            <p class="text-sm text-[#A7B5C4] leading-relaxed">${game.controls[lang]}</p>
+          </div>
+          <div class="steam-surface rounded-xl p-5 space-y-2">
+            <h3 class="font-bold text-white text-base">ℹ️ ${this.t('about_game')}</h3>
+            <p class="text-sm text-[#A7B5C4] leading-relaxed">${game.desc[lang]}</p>
+          </div>
+        </div>
+
+        <!-- Related Games -->
+        <section class="space-y-4 pt-2">
+          <h3 class="text-lg font-bold text-white">${this.t('related_games')}</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${related.map(g => this.renderGameCard(g)).join('')}
+          </div>
+        </section>
+      </div>
+    `;
+
+    document.getElementById('btn-launch-game').onclick = () => GameRunner.launch(game);
+  },
+
+  // === VIEW 4: FAVORITES ===
+  renderFavorites() {
+    const root = document.getElementById('app-root');
+    const favs = Store.state.favorites.map(id => GAMES_DB.find(g => g.id === id)).filter(Boolean);
+    root.innerHTML = `
+      <div class="space-y-6 animate-view">
+        <div class="steam-surface rounded-2xl p-6">
+          <h1 class="text-2xl font-extrabold text-white">❤️ ${this.t('favorites_title')} (${favs.length})</h1>
+        </div>
+        ${favs.length ? `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${favs.map(g => this.renderGameCard(g)).join('')}
+          </div>
+        ` : `
+          <div class="steam-surface rounded-2xl p-12 text-center space-y-4">
+            <div class="text-4xl">💔</div>
+            <p class="text-[#A7B5C4]">${this.t('empty_favorites')}</p>
+            <button onclick="App.navigate('discover')" class="btn-primary px-6 py-2.5 text-sm">${this.t('nav_discover')}</button>
+          </div>
+        `}
+      </div>
+    `;
+  },
+
+  // === VIEW 5: PROFILE & SETTINGS ===
+  renderProfile() {
+    const root = document.getElementById('app-root');
+    const achievements = Store.getAchievements();
+    const unlockedCount = achievements.filter(a => a.unlocked).length;
+    const uniqueCount = new Set(Store.state.recentlyPlayed).size;
+
+    root.innerHTML = `
+      <div class="space-y-6 animate-view">
+        <div class="steam-surface rounded-2xl p-6 space-y-6">
+          <h1 class="text-2xl font-extrabold text-white">👤 ${this.t('profile_title')}</h1>
+
+          <!-- Stats Grid -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-[#101923] p-4 rounded-xl border border-sky-400/15">
+              <div class="text-xs text-[#A7B5C4]">${this.t('stat_played')}</div>
+              <div class="text-2xl font-extrabold text-[#1A9FFF] mt-1">${Store.state.sessionsPlayed}</div>
+            </div>
+            <div class="bg-[#101923] p-4 rounded-xl border border-sky-400/15">
+              <div class="text-xs text-[#A7B5C4]">${this.t('stat_unique')}</div>
+              <div class="text-2xl font-extrabold text-emerald-400 mt-1">${uniqueCount} / 50</div>
+            </div>
+            <div class="bg-[#101923] p-4 rounded-xl border border-sky-400/15">
+              <div class="text-xs text-[#A7B5C4]">${this.t('stat_favorites')}</div>
+              <div class="text-2xl font-extrabold text-rose-400 mt-1">${Store.state.favorites.length}</div>
+            </div>
+            <div class="bg-[#101923] p-4 rounded-xl border border-sky-400/15">
+              <div class="text-xs text-[#A7B5C4]">${this.t('stat_achievements')}</div>
+              <div class="text-2xl font-extrabold text-amber-400 mt-1">${unlockedCount} / ${achievements.length}</div>
+            </div>
+          </div>
+
+          <!-- Nickname & Theme Form -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-[#A7B5C4] uppercase">${this.t('nickname_label')}</label>
+              <div class="flex gap-2">
+                <input id="profile-nick-input" value="${Store.state.nickname}" class="flex-1 bg-[#101923] border border-sky-400/25 rounded-lg px-3.5 py-2 text-sm text-white outline-none focus:border-[#1A9FFF]"/>
+                <button onclick="const v = document.getElementById('profile-nick-input').value.trim(); if(v){ Store.state.nickname = v; Store.save(); document.getElementById('header-nickname').textContent = v; App.toast('Saved!'); }" class="btn-primary px-4 py-2 text-xs font-bold">${this.t('save_profile')}</button>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-[#A7B5C4] uppercase">${this.t('theme_label')}</label>
+              <select onchange="App.applyTheme(this.value); App.toast('Theme updated');" class="w-full bg-[#101923] border border-sky-400/25 rounded-lg px-3.5 py-2 text-sm text-white outline-none">
+                <option value="steam" ${Store.state.theme === 'steam' ? 'selected' : ''}>${this.t('theme_steam')}</option>
+                <option value="midnight" ${Store.state.theme === 'midnight' ? 'selected' : ''}>${this.t('theme_midnight')}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="steam-surface rounded-2xl p-6 space-y-4">
+          <h2 class="text-lg font-bold text-white">🏆 ${this.t('achievements_title')}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            ${achievements.map(a => `
+              <div class="p-4 rounded-xl border ${a.unlocked ? 'bg-[#1B2D40] border-[#1A9FFF]/50' : 'bg-[#101923]/60 border-white/5 opacity-50'} space-y-1.5">
+                <div class="text-2xl">${a.icon}</div>
+                <div class="font-bold text-sm text-white">${a.title}</div>
+                <div class="text-xs text-[#A7B5C4]">${a.desc}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Recent History -->
+        ${Store.state.history.length ? `
+          <div class="steam-surface rounded-2xl p-6 space-y-3">
+            <h2 class="text-lg font-bold text-white">📜 ${this.t('history_title')}</h2>
+            <div class="divide-y divide-sky-400/10">
+              ${Store.state.history.slice(0, 8).map(h => {
+                const g = GAMES_DB.find(x => x.id === h.gameId);
+                return g ? `<div class="py-2.5 flex items-center justify-between text-sm">
+                  <span class="font-semibold text-white">${g.title}</span>
+                  <span class="text-[#66C0F4] font-bold">${this.t('score_label')}: ${h.score} <span class="text-xs text-[#A7B5C4] ml-2">${h.date}</span></span>
+                </div>` : '';
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+};
+
+window.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+</body>
+</html>
